@@ -1,0 +1,3140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Asteroid Miner</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    user-select:none;
+    -webkit-user-select:none;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#02040d;
+    font-family:Arial,sans-serif;
+    color:white;
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:100%;
+    background:#02040d;
+}
+
+#ui{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+}
+
+#top{
+    position:absolute;
+    top:12px;
+    left:12px;
+    right:12px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.panel{
+    background:rgba(7,12,30,.82);
+    border:1px solid rgba(100,170,255,.3);
+    border-radius:12px;
+    padding:9px 12px;
+    backdrop-filter:blur(5px);
+    box-shadow:0 0 20px rgba(0,100,255,.12);
+}
+
+#stats{
+    min-width:220px;
+}
+
+.bar{
+    height:9px;
+    background:#172038;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:5px;
+}
+
+#hpBar{
+    height:100%;
+    width:100%;
+    background:linear-gradient(90deg,#ff315d,#ff8847);
+}
+
+.resource{
+    margin:2px 0;
+    font-size:14px;
+}
+
+#level{
+    color:#72d7ff;
+}
+
+#controls{
+    position:absolute;
+    bottom:25px;
+    left:0;
+    right:0;
+    height:180px;
+}
+
+#joystick{
+    position:absolute;
+    left:25px;
+    bottom:10px;
+    width:135px;
+    height:135px;
+    border-radius:50%;
+    background:rgba(60,90,140,.2);
+    border:2px solid rgba(130,190,255,.35);
+    pointer-events:auto;
+    touch-action:none;
+}
+
+#stick{
+    position:absolute;
+    width:62px;
+    height:62px;
+    left:50%;
+    top:50%;
+    margin-left:-31px;
+    margin-top:-31px;
+    border-radius:50%;
+    background:rgba(100,190,255,.55);
+    border:2px solid #9de3ff;
+    box-shadow:0 0 25px #278cff;
+}
+
+#fire{
+    position:absolute;
+    right:25px;
+    bottom:8px;
+    width:115px;
+    height:115px;
+    border-radius:50%;
+    border:2px solid #ff5d70;
+    background:rgba(255,40,70,.22);
+    color:#fff;
+    font-size:22px;
+    font-weight:bold;
+    pointer-events:auto;
+    touch-action:none;
+    box-shadow:0 0 30px rgba(255,30,70,.25);
+}
+
+#fire:active{
+    transform:scale(.94);
+    background:rgba(255,40,70,.45);
+}
+
+#craftBtn{
+    position:absolute;
+    right:25px;
+    bottom:150px;
+    pointer-events:auto;
+    padding:10px 15px;
+    border:1px solid #55d9ff;
+    border-radius:10px;
+    background:rgba(20,70,100,.7);
+    color:white;
+    font-weight:bold;
+}
+
+#craft{
+    display:none;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(92vw,430px);
+    max-height:80vh;
+    overflow:auto;
+    background:rgba(5,10,27,.97);
+    border:1px solid #3d91d8;
+    border-radius:18px;
+    padding:18px;
+    pointer-events:auto;
+    box-shadow:0 0 60px rgba(0,100,255,.35);
+}
+
+#craft h2{
+    margin-top:0;
+    color:#79dfff;
+}
+
+.upgrade{
+    border:1px solid rgba(100,170,255,.25);
+    border-radius:12px;
+    padding:12px;
+    margin:9px 0;
+    background:rgba(20,35,65,.65);
+}
+
+.upgradeTitle{
+    font-weight:bold;
+    font-size:16px;
+}
+
+.upgradeDesc{
+    color:#9baac8;
+    font-size:12px;
+    margin:5px 0;
+}
+
+button{
+    cursor:pointer;
+}
+
+.upgrade button{
+    width:100%;
+    padding:9px;
+    border:0;
+    border-radius:8px;
+    background:#1265a5;
+    color:white;
+    font-weight:bold;
+}
+
+.upgrade button:disabled{
+    opacity:.35;
+}
+
+#close{
+    float:right;
+    border:0;
+    background:#26334d;
+    color:white;
+    border-radius:8px;
+    padding:7px 11px;
+}
+
+#message{
+    position:absolute;
+    left:50%;
+    top:22%;
+    transform:translateX(-50%);
+    font-weight:bold;
+    color:#8fe8ff;
+    text-shadow:0 0 12px #008cff;
+    opacity:0;
+    transition:.25s;
+    text-align:center;
+}
+
+#gameOver{
+    display:none;
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.75);
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    pointer-events:auto;
+}
+
+#gameOver .box{
+    background:#080d20;
+    border:1px solid #f05267;
+    border-radius:18px;
+    padding:30px;
+}
+
+#gameOver button{
+    background:#1673b8;
+    color:white;
+    border:0;
+    padding:12px 25px;
+    border-radius:9px;
+    font-weight:bold;
+}
+
+.small{
+    color:#94a9cc;
+    font-size:12px;
+}
+
+#pickupHint{
+    position:absolute;
+    bottom:205px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#8fe8ff;
+    font-size:13px;
+    opacity:0;
+    transition:.2s;
+    text-shadow:0 0 10px #008cff;
+    white-space:nowrap;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="ui">
+
+    <div id="top">
+        <div class="panel" id="stats">
+            <div>
+                🚀 <b>MINER-01</b> —
+                Lv.<span id="level">0</span>
+            </div>
+
+            <div class="bar">
+                <div id="hpBar"></div>
+            </div>
+
+            <div class="small">
+                Zırh:
+                <span id="hpText">60 / 60</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="resource">
+                🔩 Demir: <b id="iron">0</b>
+            </div>
+
+            <div class="resource">
+                💎 Kristal: <b id="crystal">0</b>
+            </div>
+
+            <div class="resource">
+                ⚡ Enerji: <b id="energy">0</b>
+            </div>
+        </div>
+    </div>
+
+    <div id="message"></div>
+
+    <div id="pickupHint">
+        📦 Kaynağı almak için üzerinden geç
+    </div>
+
+    <button id="craftBtn">
+        🔧 GEMİ / CRAFT
+    </button>
+
+    <div id="controls">
+
+        <div id="joystick">
+            <div id="stick"></div>
+        </div>
+
+        <button id="fire">
+            ATEŞ<br>🔥
+        </button>
+
+    </div>
+
+    <div id="craft">
+
+        <button id="close">✕</button>
+
+        <h2>🔧 Gemi Sistemleri</h2>
+
+        <div class="small">
+            Gemin şu anda Level 0.
+            Kaynakları toplayarak sistemlerini geliştir.
+        </div>
+
+        <div class="upgrade">
+
+            <div class="upgradeTitle">
+                🛡️ Zırh
+            </div>
+
+            <div class="upgradeDesc">
+                Maksimum canı artırır.
+                Seviye:
+                <b id="armorLv">0</b>
+            </div>
+
+            <button id="armorUp"></button>
+
+        </div>
+
+        <div class="upgrade">
+
+            <div class="upgradeTitle">
+                ⚡ Ateş Sıklığı
+            </div>
+
+            <div class="upgradeDesc">
+                Ateş etme bekleme süresini azaltır.
+                Seviye:
+                <b id="fireLv">0</b>
+            </div>
+
+            <button id="fireUp"></button>
+
+        </div>
+
+        <div class="upgrade">
+
+            <div class="upgradeTitle">
+                🚀 Mermi Hızı
+            </div>
+
+            <div class="upgradeDesc">
+                Mermiler daha hızlı gider.
+                Seviye:
+                <b id="bulletLv">0</b>
+            </div>
+
+            <button id="bulletUp"></button>
+
+        </div>
+
+        <div class="upgrade">
+
+            <div class="upgradeTitle">
+                💥 Mermi Hasarı
+            </div>
+
+            <div class="upgradeDesc">
+                Mermilerin verdiği hasarı artırır.
+                Seviye:
+                <b id="damageLv">0</b>
+            </div>
+
+            <button id="damageUp"></button>
+
+        </div>
+
+        <div class="upgrade">
+
+            <div class="upgradeTitle">
+                ⚙️ Motor
+            </div>
+
+            <div class="upgradeDesc">
+                Geminin maksimum hareket hızını artırır.
+                Seviye:
+                <b id="engineLv">0</b>
+            </div>
+
+            <button id="engineUp"></button>
+
+        </div>
+
+    </div>
+
+    <div id="gameOver">
+
+        <div class="box">
+
+            <h1>💥 GEMİ YOK OLDU</h1>
+
+            <p>
+                Gemin yok edildi.
+            </p>
+
+            <button onclick="location.reload()">
+                TEKRAR OYNA
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   TEMEL SİSTEM
+========================================================= */
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let W,H;
+
+function resize(){
+
+    W=innerWidth;
+    H=innerHeight;
+
+    canvas.width=W*devicePixelRatio;
+    canvas.height=H*devicePixelRatio;
+
+    canvas.style.width=W+"px";
+    canvas.style.height=H+"px";
+
+    ctx.setTransform(
+        devicePixelRatio,
+        0,
+        0,
+        devicePixelRatio,
+        0,
+        0
+    );
+}
+
+resize();
+
+addEventListener("resize",resize);
+
+
+/* =========================================================
+   OYUNCU İSTATİSTİKLERİ
+   LEVEL 0 BAŞLANGICI
+========================================================= */
+
+const state={
+
+    iron:0,
+    crystal:0,
+    energy:0,
+
+    level:0,
+
+    armorLv:0,
+    fireLv:0,
+    bulletLv:0,
+    damageLv:0,
+    engineLv:0
+};
+
+
+/*
+    ÖNCEKİ SÜRÜME GÖRE ÇOK DAHA DÜŞÜK
+    BAŞLANGIÇ İSTATİSTİKLERİ
+*/
+
+const BASE_MAX_HP=60;
+
+const ship={
+
+    // Dünya koordinatları
+    x:0,
+    y:0,
+
+    r:17,
+
+    hp:BASE_MAX_HP,
+    maxHp:BASE_MAX_HP,
+
+    angle:0,
+
+    fireTimer:0,
+
+    invincible:0
+};
+
+
+/* =========================================================
+   KAMERA
+========================================================= */
+
+const camera={
+    x:0,
+    y:0,
+
+    // Kameranın yumuşak takip hızı
+    smooth:.08
+};
+
+function updateCamera(){
+
+    camera.x+=(ship.x-camera.x)*camera.smooth;
+    camera.y+=(ship.y-camera.y)*camera.smooth;
+
+}
+
+
+/*
+    Dünya koordinatını ekran koordinatına çeviriyoruz.
+*/
+
+function screenX(worldX){
+    return worldX-camera.x+W/2;
+}
+
+function screenY(worldY){
+    return worldY-camera.y+H/2;
+}
+
+
+/* =========================================================
+   OYUN NESNELERİ
+========================================================= */
+
+let asteroids=[];
+let bullets=[];
+let enemies=[];
+let enemyBullets=[];
+let particles=[];
+
+
+/*
+    YENİ:
+    Asteroitlerden düşen kaynaklar
+*/
+
+let pickups=[];
+
+
+/*
+    Sonsuz uzay yıldızları için sabit dünya koordinatları.
+*/
+
+let stars=[];
+
+for(let i=0;i<500;i++){
+
+    stars.push({
+
+        x:(Math.random()-.5)*5000,
+        y:(Math.random()-.5)*5000,
+
+        r:Math.random()*1.5+.2,
+
+        a:Math.random()
+    });
+}
+
+
+let shake=0;
+
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joy={
+    active:false,
+    x:0,
+    y:0,
+    id:null
+};
+
+let firing=false;
+
+
+/* =========================================================
+   RANDOM
+========================================================= */
+
+function rand(a,b){
+    return Math.random()*(b-a)+a;
+}
+
+function randInt(a,b){
+    return Math.floor(rand(a,b+1));
+}
+
+function dist(a,b){
+    return Math.hypot(
+        a.x-b.x,
+        a.y-b.y
+    );
+}
+
+
+/* =========================================================
+   LEVEL 0 STATLARI
+========================================================= */
+
+/*
+    Level 0:
+    
+    Hareket:
+    0.85
+
+    Ateş aralığı:
+    70 frame
+    ≈ 1.16 saniye
+
+    Mermi:
+    4
+
+    Hasar:
+    5
+
+    Zırh:
+    60
+*/
+
+function engineSpeed(){
+
+    return .85+
+        state.engineLv*.30;
+
+}
+
+function fireDelay(){
+
+    return Math.max(
+        14,
+        70-state.fireLv*8
+    );
+
+}
+
+function bulletSpeed(){
+
+    return 4+
+        state.bulletLv*.8;
+
+}
+
+function damage(){
+
+    return 5+
+        state.damageLv*3;
+
+}
+
+
+/* =========================================================
+   ASTEROİT
+========================================================= */
+
+function spawnAsteroid(){
+
+    /*
+        Geminin etrafında değil,
+        kameranın uzağında üret.
+    */
+
+    const angle=Math.random()*Math.PI*2;
+
+    const distance=rand(
+        450,
+        850
+    );
+
+    const x=
+        ship.x+
+        Math.cos(angle)*distance;
+
+    const y=
+        ship.y+
+        Math.sin(angle)*distance;
+
+    const size=rand(18,42);
+
+    asteroids.push({
+
+        x,
+        y,
+
+        r:size,
+
+        hp:Math.ceil(size/8),
+
+        vx:rand(-.08,.08),
+        vy:rand(-.08,.08),
+
+        rot:Math.random()*Math.PI*2,
+
+        spin:rand(-.01,.01)
+
+    });
+
+}
+
+
+/* =========================================================
+   DÜŞMAN
+========================================================= */
+
+function spawnEnemy(){
+
+    if(enemies.length>=2)
+        return;
+
+    const angle=
+        Math.random()*Math.PI*2;
+
+    const distance=
+        rand(700,950);
+
+    enemies.push({
+
+        x:
+            ship.x+
+            Math.cos(angle)*distance,
+
+        y:
+            ship.y+
+            Math.sin(angle)*distance,
+
+        r:18,
+
+        hp:
+            25+
+            state.level*8,
+
+        maxHp:
+            25+
+            state.level*8,
+
+        fire:rand(2,4),
+
+        vx:rand(-.25,.25),
+        vy:rand(-.25,.25)
+
+    });
+
+    showMessage(
+        "⚠️ UZAKTA DÜŞMAN TESPİT EDİLDİ"
+    );
+
+}
+
+
+/*
+    Düşmanlar artık biraz daha seyrek.
+*/
+
+setInterval(()=>{
+
+    if(Math.random()<.14){
+
+        spawnEnemy();
+
+    }
+
+},6000);
+
+
+/* =========================================================
+   PARÇACIK
+========================================================= */
+
+function addParticle(
+    x,
+    y,
+    color,
+    count=10
+){
+
+    for(let i=0;i<count;i++){
+
+        particles.push({
+
+            x,
+            y,
+
+            vx:rand(-2.5,2.5),
+            vy:rand(-2.5,2.5),
+
+            life:rand(20,45),
+            max:45,
+
+            color
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   ATEŞ
+========================================================= */
+
+function shoot(){
+
+    if(ship.fireTimer>0)
+        return;
+
+    const angle=ship.angle;
+
+    bullets.push({
+
+        x:
+            ship.x+
+            Math.cos(angle)*22,
+
+        y:
+            ship.y+
+            Math.sin(angle)*22,
+
+        vx:
+            Math.cos(angle)*
+            bulletSpeed(),
+
+        vy:
+            Math.sin(angle)*
+            bulletSpeed(),
+
+        r:4,
+
+        life:110,
+
+        damage:damage()
+
+    });
+
+    ship.fireTimer=
+        fireDelay();
+
+    addParticle(
+
+        ship.x+
+        Math.cos(angle)*22,
+
+        ship.y+
+        Math.sin(angle)*22,
+
+        "#8eeaff",
+
+        3
+
+    );
+
+}
+
+
+/* =========================================================
+   GEMİ HAREKETİ
+========================================================= */
+
+function moveShip(){
+
+    ship.x+=
+        joy.x*
+        engineSpeed();
+
+    ship.y+=
+        joy.y*
+        engineSpeed();
+
+
+    if(
+        Math.abs(joy.x)+
+        Math.abs(joy.y)
+        >.1
+    ){
+
+        ship.angle=
+            Math.atan2(
+                joy.y,
+                joy.x
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   GÜNCELLEME
+========================================================= */
+
+function update(){
+
+    moveShip();
+
+    updateCamera();
+
+
+    if(ship.fireTimer>0)
+        ship.fireTimer--;
+
+    if(ship.invincible>0)
+        ship.invincible--;
+
+
+    if(firing)
+        shoot();
+
+
+    /* -------------------------
+       MERMİLER
+    ------------------------- */
+
+    bullets.forEach(b=>{
+
+        b.x+=b.vx;
+        b.y+=b.vy;
+
+        b.life--;
+
+    });
+
+    bullets=
+        bullets.filter(
+            b=>b.life>0
+        );
+
+
+    /* -------------------------
+       ASTEROİTLER
+    ------------------------- */
+
+    asteroids.forEach(a=>{
+
+        a.x+=a.vx;
+        a.y+=a.vy;
+
+        a.rot+=a.spin;
+
+    });
+
+
+    /* -------------------------
+       DÜŞMANLAR
+    ------------------------- */
+
+    enemies.forEach(e=>{
+
+        /*
+            Düşman oyuncuya doğru hafifçe yönelir.
+        */
+
+        const dx=ship.x-e.x;
+        const dy=ship.y-e.y;
+
+        const d=Math.hypot(dx,dy);
+
+        if(d>0){
+
+            e.vx+=
+                (dx/d)*.003;
+
+            e.vy+=
+                (dy/d)*.003;
+
+        }
+
+        e.vx*=.995;
+        e.vy*=.995;
+
+        e.x+=e.vx;
+        e.y+=e.vy;
+
+
+        if(d<450){
+
+            e.fire-=1/60;
+
+            if(e.fire<=0){
+
+                const angle=
+                    Math.atan2(
+                        ship.y-e.y,
+                        ship.x-e.x
+                    );
+
+                enemyBullets.push({
+
+                    x:e.x,
+                    y:e.y,
+
+                    vx:
+                        Math.cos(angle)*3,
+
+                    vy:
+                        Math.sin(angle)*3,
+
+                    life:220
+
+                });
+
+                e.fire=rand(
+                    2.5,
+                    4
+                );
+
+            }
+
+        }
+
+    });
+
+
+    /* -------------------------
+       DÜŞMAN MERMİLERİ
+    ------------------------- */
+
+    enemyBullets.forEach(b=>{
+
+        b.x+=b.vx;
+        b.y+=b.vy;
+
+        b.life--;
+
+    });
+
+    enemyBullets=
+        enemyBullets.filter(
+            b=>b.life>0
+        );
+
+
+    /* =====================================================
+       MERMİ -> ASTEROİT
+    ===================================================== */
+
+    for(
+        let i=bullets.length-1;
+        i>=0;
+        i--
+    ){
+
+        const b=bullets[i];
+
+        for(
+            let j=asteroids.length-1;
+            j>=0;
+            j--
+        ){
+
+            const a=asteroids[j];
+
+            if(
+                dist(b,a)
+                <
+                a.r+b.r
+            ){
+
+                a.hp-=b.damage;
+
+                bullets.splice(i,1);
+
+                addParticle(
+                    b.x,
+                    b.y,
+                    "#ffc857",
+                    7
+                );
+
+
+                if(a.hp<=0){
+
+                    /*
+                        ARTIK KAYNAK DİREKT
+                        ENVANTERE GİRMİYOR.
+
+                        Önce uzaya pickup bırakıyoruz.
+                    */
+
+                    dropResources(a);
+
+                    addParticle(
+                        a.x,
+                        a.y,
+                        "#65eaff",
+                        25
+                    );
+
+                    shake=4;
+
+                    asteroids.splice(
+                        j,
+                        1
+                    );
+
+                }
+
+                break;
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       MERMİ -> DÜŞMAN
+    ===================================================== */
+
+    for(
+        let i=bullets.length-1;
+        i>=0;
+        i--
+    ){
+
+        const b=bullets[i];
+
+        for(
+            let j=enemies.length-1;
+            j>=0;
+            j--
+        ){
+
+            const e=enemies[j];
+
+            if(
+                dist(b,e)
+                <
+                e.r+b.r
+            ){
+
+                e.hp-=b.damage;
+
+                bullets.splice(i,1);
+
+                addParticle(
+                    b.x,
+                    b.y,
+                    "#ff526e",
+                    8
+                );
+
+
+                if(e.hp<=0){
+
+                    /*
+                        Düşmandan da kaynak düşebilir.
+                    */
+
+                    dropEnemyResources(e);
+
+                    addParticle(
+                        e.x,
+                        e.y,
+                        "#ff4161",
+                        30
+                    );
+
+                    shake=10;
+
+                    enemies.splice(
+                        j,
+                        1
+                    );
+
+                    showMessage(
+                        "👾 DÜŞMAN YOK EDİLDİ"
+                    );
+
+                }
+
+                break;
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       ASTEROİT -> GEMİ
+    ===================================================== */
+
+    asteroids.forEach(a=>{
+
+        if(
+            dist(a,ship)
+            <
+            a.r+ship.r
+        ){
+
+            hurt(6);
+
+            const angle=
+                Math.atan2(
+                    ship.y-a.y,
+                    ship.x-a.x
+                );
+
+            ship.x+=
+                Math.cos(angle)*2;
+
+            ship.y+=
+                Math.sin(angle)*2;
+
+        }
+
+    });
+
+
+    /* =====================================================
+       DÜŞMAN -> GEMİ
+    ===================================================== */
+
+    enemies.forEach(e=>{
+
+        if(
+            dist(e,ship)
+            <
+            e.r+ship.r
+        ){
+
+            hurt(12);
+
+        }
+
+    });
+
+
+    /* =====================================================
+       DÜŞMAN MERMİSİ -> GEMİ
+    ===================================================== */
+
+    for(
+        let i=enemyBullets.length-1;
+        i>=0;
+        i--
+    ){
+
+        const b=enemyBullets[i];
+
+        if(
+            Math.hypot(
+                b.x-ship.x,
+                b.y-ship.y
+            )
+            <
+            ship.r+7
+        ){
+
+            hurt(8);
+
+            enemyBullets.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PICKUP TOPLAMA
+    ===================================================== */
+
+    updatePickups();
+
+
+    /* =====================================================
+       PARÇACIKLAR
+    ===================================================== */
+
+    particles.forEach(p=>{
+
+        p.x+=p.vx;
+        p.y+=p.vy;
+
+        p.vx*=.97;
+        p.vy*=.97;
+
+        p.life--;
+
+    });
+
+    particles=
+        particles.filter(
+            p=>p.life>0
+        );
+
+
+    /* =====================================================
+       YENİ ASTEROİT ÜRET
+    ===================================================== */
+
+    if(
+        asteroids.length<14
+    ){
+
+        spawnAsteroid();
+
+    }
+
+
+    updateUI();
+
+}
+
+
+/* =========================================================
+   KAYNAK DROP SİSTEMİ
+========================================================= */
+
+function dropResources(a){
+
+    const roll=Math.random();
+
+    let type;
+    let amount;
+
+
+    if(roll<.55){
+
+        type="iron";
+        amount=randInt(1,4);
+
+    }
+    else if(roll<.87){
+
+        type="crystal";
+        amount=randInt(1,2);
+
+    }
+    else{
+
+        type="energy";
+        amount=randInt(1,3);
+
+    }
+
+
+    /*
+        Pickup asteroitin bulunduğu yerde oluşur.
+        Biraz fiziksel hareket veriyoruz.
+    */
+
+    pickups.push({
+
+        x:a.x,
+        y:a.y,
+
+        vx:rand(-.5,.5),
+        vy:rand(-.5,.5),
+
+        type,
+        amount,
+
+        r:10,
+
+        life:999999
+
+    });
+
+}
+
+
+/*
+    Düşmandan daha değerli kaynak düşür.
+*/
+
+function dropEnemyResources(e){
+
+    pickups.push({
+
+        x:e.x,
+        y:e.y,
+
+        vx:rand(-1,1),
+        vy:rand(-1,1),
+
+        type:"energy",
+        amount:randInt(2,5),
+
+        r:11,
+
+        life:999999
+
+    });
+
+
+    if(Math.random()<.7){
+
+        pickups.push({
+
+            x:e.x+rand(-15,15),
+            y:e.y+rand(-15,15),
+
+            vx:rand(-.7,.7),
+            vy:rand(-.7,.7),
+
+            type:"crystal",
+            amount:randInt(1,3),
+
+            r:10,
+
+            life:999999
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   PICKUP GÜNCELLEME
+========================================================= */
+
+function updatePickups(){
+
+    let nearby=false;
+
+
+    pickups.forEach(p=>{
+
+        p.x+=p.vx;
+        p.y+=p.vy;
+
+        p.vx*=.96;
+        p.vy*=.96;
+
+
+        const d=dist(
+            p,
+            ship
+        );
+
+
+        /*
+            Kaynağa yaklaşırsak hafif çekim.
+        */
+
+        if(d<100 && d>5){
+
+            p.vx+=
+                (ship.x-p.x)
+                /d*.025;
+
+            p.vy+=
+                (ship.y-p.y)
+                /d*.025;
+
+        }
+
+
+        /*
+            GEMİ KAYNAĞIN ÜZERİNDEN GEÇİNCE TOPLA
+        */
+
+        if(d<p.r+ship.r){
+
+            collectPickup(p);
+
+            p.collected=true;
+
+        }
+
+
+        if(d<100){
+
+            nearby=true;
+
+        }
+
+    });
+
+
+    pickups=
+        pickups.filter(
+            p=>!p.collected
+        );
+
+
+    document.getElementById(
+        "pickupHint"
+    ).style.opacity=
+        nearby ? 1 : 0;
+
+}
+
+
+/* =========================================================
+   PICKUP TOPLA
+========================================================= */
+
+function collectPickup(p){
+
+    if(p.type==="iron"){
+
+        state.iron+=p.amount;
+
+        showMessage(
+            `🔩 +${p.amount} Demir`
+        );
+
+    }
+
+
+    if(p.type==="crystal"){
+
+        state.crystal+=p.amount;
+
+        showMessage(
+            `💎 +${p.amount} Kristal`
+        );
+
+    }
+
+
+    if(p.type==="energy"){
+
+        state.energy+=p.amount;
+
+        showMessage(
+            `⚡ +${p.amount} Enerji`
+        );
+
+    }
+
+
+    addParticle(
+        p.x,
+        p.y,
+        pickupColor(p.type),
+        15
+    );
+
+}
+
+
+function pickupColor(type){
+
+    if(type==="iron")
+        return "#c8c8c8";
+
+    if(type==="crystal")
+        return "#b96cff";
+
+    return "#ffe45e";
+
+}
+
+
+/* =========================================================
+   HASAR
+========================================================= */
+
+function hurt(amount){
+
+    if(ship.invincible>0)
+        return;
+
+    ship.hp-=amount;
+
+    ship.invincible=50;
+
+    shake=8;
+
+    addParticle(
+        ship.x,
+        ship.y,
+        "#ff385b",
+        15
+    );
+
+
+    if(ship.hp<=0){
+
+        ship.hp=0;
+
+        document.getElementById(
+            "gameOver"
+        ).style.display="flex";
+
+    }
+
+}
+
+
+/* =========================================================
+   ÇİZİM
+========================================================= */
+
+function draw(){
+
+    ctx.save();
+
+
+    if(shake>0){
+
+        ctx.translate(
+            rand(-shake,shake),
+            rand(-shake,shake)
+        );
+
+        shake*=.85;
+
+        if(shake<.3)
+            shake=0;
+
+    }
+
+
+    /*
+        ARKA PLAN
+    */
+
+    ctx.fillStyle="#02040d";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /*
+        YILDIZLAR
+    */
+
+    stars.forEach(s=>{
+
+        const x=screenX(s.x);
+        const y=screenY(s.y);
+
+
+        /*
+            Kamera hareket ettikçe
+            yıldızlar dünyayla birlikte akar.
+        */
+
+        if(
+            x>-10 &&
+            x<W+10 &&
+            y>-10 &&
+            y<H+10
+        ){
+
+            ctx.globalAlpha=
+                .3+s.a*.7;
+
+            ctx.fillStyle="#fff";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                s.r,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+        }
+
+    });
+
+
+    ctx.globalAlpha=1;
+
+
+    /*
+        UZAK YILDIZLAR
+        Sonsuzluk hissi için procedural grid.
+    */
+
+    drawSpaceGrid();
+
+
+    /*
+        ASTEROİTLER
+    */
+
+    asteroids.forEach(
+        drawAsteroid
+    );
+
+
+    /*
+        PICKUP'LAR
+    */
+
+    pickups.forEach(
+        drawPickup
+    );
+
+
+    /*
+        DÜŞMANLAR
+    */
+
+    enemies.forEach(
+        drawEnemy
+    );
+
+
+    /*
+        MERMİLER
+    */
+
+    bullets.forEach(b=>{
+
+        const x=screenX(b.x);
+        const y=screenY(b.y);
+
+        ctx.fillStyle="#a9f3ff";
+
+        ctx.shadowBlur=12;
+        ctx.shadowColor="#4bdcff";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            b.r,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur=0;
+
+    });
+
+
+    /*
+        DÜŞMAN MERMİLERİ
+    */
+
+    enemyBullets.forEach(b=>{
+
+        const x=screenX(b.x);
+        const y=screenY(b.y);
+
+        ctx.fillStyle="#ff4d62";
+
+        ctx.shadowBlur=10;
+        ctx.shadowColor="#ff203f";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            5,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur=0;
+
+    });
+
+
+    /*
+        GEMİ
+    */
+
+    drawShip();
+
+
+    /*
+        PARÇACIKLAR
+    */
+
+    particles.forEach(p=>{
+
+        const x=screenX(p.x);
+        const y=screenY(p.y);
+
+        ctx.globalAlpha=
+            Math.max(
+                0,
+                p.life/p.max
+            );
+
+        ctx.fillStyle=p.color;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            Math.max(
+                1,
+                p.life/10
+            ),
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    });
+
+
+    ctx.globalAlpha=1;
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   UZAY GRID
+========================================================= */
+
+function drawSpaceGrid(){
+
+    /*
+        Büyük, çok hafif grid.
+        Dünya koordinatına bağlı olduğu için
+        kamera hareketinde uzay hissi verir.
+    */
+
+    const grid=250;
+
+    const startX=
+        Math.floor(
+            (camera.x-W/2)/grid
+        )*grid;
+
+    const startY=
+        Math.floor(
+            (camera.y-H/2)/grid
+        )*grid;
+
+
+    ctx.strokeStyle=
+        "rgba(50,100,170,.055)";
+
+    ctx.lineWidth=1;
+
+
+    for(
+        let wx=startX;
+        wx<camera.x+W/2+grid;
+        wx+=grid
+    ){
+
+        const x=screenX(wx);
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,0);
+        ctx.lineTo(x,H);
+
+        ctx.stroke();
+
+    }
+
+
+    for(
+        let wy=startY;
+        wy<camera.y+H/2+grid;
+        wy+=grid
+    ){
+
+        const y=screenY(wy);
+
+        ctx.beginPath();
+
+        ctx.moveTo(0,y);
+        ctx.lineTo(W,y);
+
+        ctx.stroke();
+
+    }
+
+}
+
+
+/* =========================================================
+   GEMİ
+========================================================= */
+
+function drawShip(){
+
+    ctx.save();
+
+    /*
+        Geminin ekran pozisyonu
+        kamera nedeniyle artık sabit değil,
+        ancak kamera onu takip ettiği için
+        merkezde kalmaya çalışır.
+    */
+
+    const x=screenX(ship.x);
+    const y=screenY(ship.y);
+
+    ctx.translate(
+        x,
+        y
+    );
+
+    ctx.rotate(
+        ship.angle
+    );
+
+
+    if(
+        ship.invincible%6<3
+    ){
+
+        ctx.globalAlpha=.55;
+
+    }
+
+
+    /*
+        MOTOR
+    */
+
+    ctx.fillStyle="#31d9ff";
+
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#00cfff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(-15,0);
+
+    ctx.lineTo(-30,7);
+
+    ctx.lineTo(-25,0);
+
+    ctx.lineTo(-30,-7);
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+
+
+    /*
+        GEMİ
+    */
+
+    const grad=
+        ctx.createLinearGradient(
+            -20,
+            0,
+            20,
+            0
+        );
+
+    grad.addColorStop(
+        0,
+        "#254f8a"
+    );
+
+    grad.addColorStop(
+        1,
+        "#a4ecff"
+    );
+
+    ctx.fillStyle=grad;
+
+    ctx.strokeStyle="#d8f7ff";
+
+    ctx.lineWidth=2;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(24,0);
+
+    ctx.lineTo(-12,-13);
+
+    ctx.lineTo(-7,0);
+
+    ctx.lineTo(-12,13);
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.stroke();
+
+
+    /*
+        KOKPİT
+    */
+
+    ctx.fillStyle="#172c62";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        5,
+        0,
+        6,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   ASTEROİT
+========================================================= */
+
+function drawAsteroid(a){
+
+    const x=screenX(a.x);
+    const y=screenY(a.y);
+
+
+    /*
+        Ekranın çok uzağındaysa çizme.
+    */
+
+    if(
+        x<-100 ||
+        x>W+100 ||
+        y<-100 ||
+        y>H+100
+    )
+        return;
+
+
+    ctx.save();
+
+    ctx.translate(
+        x,
+        y
+    );
+
+    ctx.rotate(
+        a.rot
+    );
+
+
+    const n=8;
+
+    ctx.fillStyle="#665a55";
+
+    ctx.strokeStyle="#9c887e";
+
+    ctx.lineWidth=2;
+
+
+    ctx.beginPath();
+
+
+    for(let i=0;i<n;i++){
+
+        const ang=
+            i*Math.PI*2/n;
+
+        /*
+            Her frame random yapmıyoruz.
+            Görüntünün titrememesi için
+            deterministik şekil.
+        */
+
+        const variations=[
+            .88,
+            1.05,
+            .82,
+            1.12,
+            .93,
+            1.04,
+            .8,
+            1.08
+        ];
+
+        const rr=
+            a.r*
+            variations[i];
+
+        const px=
+            Math.cos(ang)*rr;
+
+        const py=
+            Math.sin(ang)*rr;
+
+
+        if(i===0)
+            ctx.moveTo(px,py);
+        else
+            ctx.lineTo(px,py);
+
+    }
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.stroke();
+
+
+    /*
+        Kraterler
+    */
+
+    ctx.fillStyle=
+        "rgba(30,20,20,.35)";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -a.r*.25,
+        -a.r*.15,
+        a.r*.18,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        a.r*.3,
+        a.r*.25,
+        a.r*.13,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   PICKUP ÇİZİMİ
+========================================================= */
+
+function drawPickup(p){
+
+    const x=screenX(p.x);
+    const y=screenY(p.y);
+
+
+    if(
+        x<-40 ||
+        x>W+40 ||
+        y<-40 ||
+        y>H+40
+    )
+        return;
+
+
+    const color=
+        pickupColor(
+            p.type
+        );
+
+
+    /*
+        Glow
+    */
+
+    ctx.save();
+
+    ctx.translate(
+        x,
+        y
+    );
+
+    ctx.rotate(
+        performance.now()/900
+    );
+
+
+    ctx.shadowBlur=18;
+    ctx.shadowColor=color;
+
+    ctx.fillStyle=color;
+
+
+    /*
+        Elmas şekli
+    */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        -p.r
+    );
+
+    ctx.lineTo(
+        p.r,
+        0
+    );
+
+    ctx.lineTo(
+        0,
+        p.r
+    );
+
+    ctx.lineTo(
+        -p.r,
+        0
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.shadowBlur=0;
+
+
+    /*
+        İç parıltı
+    */
+
+    ctx.fillStyle="#ffffff";
+
+    ctx.globalAlpha=.7;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -3,
+        -3,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   DÜŞMAN
+========================================================= */
+
+function drawEnemy(e){
+
+    const x=screenX(e.x);
+    const y=screenY(e.y);
+
+
+    if(
+        x<-100 ||
+        x>W+100 ||
+        y<-100 ||
+        y>H+100
+    )
+        return;
+
+
+    ctx.save();
+
+    ctx.translate(
+        x,
+        y
+    );
+
+
+    const angle=
+        Math.atan2(
+            ship.y-e.y,
+            ship.x-e.x
+        );
+
+    ctx.rotate(angle);
+
+
+    ctx.fillStyle="#8f1832";
+
+    ctx.strokeStyle="#ff5870";
+
+    ctx.lineWidth=2;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(-22,0);
+
+    ctx.lineTo(-7,-12);
+
+    ctx.lineTo(20,0);
+
+    ctx.lineTo(-7,12);
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#ff5a70";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        4,
+        0,
+        5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /*
+        Can barı
+    */
+
+    ctx.fillStyle="#26101a";
+
+    ctx.fillRect(
+        -20,
+        -27,
+        40,
+        4
+    );
+
+
+    ctx.fillStyle="#ff465e";
+
+    ctx.fillRect(
+        -20,
+        -27,
+        40*
+        (e.hp/e.maxHp),
+        4
+    );
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+function updateUI(){
+
+    document.getElementById(
+        "iron"
+    ).textContent=
+        Math.floor(state.iron);
+
+    document.getElementById(
+        "crystal"
+    ).textContent=
+        Math.floor(state.crystal);
+
+    document.getElementById(
+        "energy"
+    ).textContent=
+        Math.floor(state.energy);
+
+
+    document.getElementById(
+        "level"
+    ).textContent=
+        state.level;
+
+
+    document.getElementById(
+        "hpText"
+    ).textContent=
+        Math.ceil(ship.hp)
+        +" / "
+        +ship.maxHp;
+
+
+    document.getElementById(
+        "hpBar"
+    ).style.width=
+        (
+            ship.hp/
+            ship.maxHp*
+            100
+        )+"%";
+
+
+    document.getElementById(
+        "armorLv"
+    ).textContent=
+        state.armorLv;
+
+    document.getElementById(
+        "fireLv"
+    ).textContent=
+        state.fireLv;
+
+    document.getElementById(
+        "bulletLv"
+    ).textContent=
+        state.bulletLv;
+
+    document.getElementById(
+        "damageLv"
+    ).textContent=
+        state.damageLv;
+
+    document.getElementById(
+        "engineLv"
+    ).textContent=
+        state.engineLv;
+
+
+    setUpgrade(
+        "armorUp",
+        state.armorLv,
+        "armor"
+    );
+
+    setUpgrade(
+        "fireUp",
+        state.fireLv,
+        "fire"
+    );
+
+    setUpgrade(
+        "bulletUp",
+        state.bulletLv,
+        "bullet"
+    );
+
+    setUpgrade(
+        "damageUp",
+        state.damageLv,
+        "damage"
+    );
+
+    setUpgrade(
+        "engineUp",
+        state.engineLv,
+        "engine"
+    );
+
+}
+
+
+/* =========================================================
+   CRAFT MALİYETLERİ
+========================================================= */
+
+function cost(
+    type,
+    lv
+){
+
+    /*
+        Level 0 -> Level 1
+    */
+
+    if(type==="armor")
+
+        return {
+            iron:8+lv*5,
+            crystal:2+lv*2,
+            energy:0+lv
+        };
+
+
+    if(type==="fire")
+
+        return {
+            iron:10+lv*6,
+            crystal:2+lv*2,
+            energy:2+lv
+        };
+
+
+    if(type==="bullet")
+
+        return {
+            iron:7+lv*5,
+            crystal:3+lv*2,
+            energy:2+lv
+        };
+
+
+    if(type==="damage")
+
+        return {
+            iron:12+lv*7,
+            crystal:4+lv*2,
+            energy:2+lv*2
+        };
+
+
+    return {
+        iron:14+lv*8,
+        crystal:2+lv*2,
+        energy:3+lv*2
+    };
+
+}
+
+
+/* =========================================================
+   CRAFT UI
+========================================================= */
+
+function setUpgrade(
+    id,
+    lv,
+    type
+){
+
+    const c=
+        cost(
+            type,
+            lv
+        );
+
+
+    const btn=
+        document.getElementById(id);
+
+
+    btn.textContent=
+        `CRAFT  🔩${c.iron}  💎${c.crystal}  ⚡${c.energy}`;
+
+
+    btn.disabled=
+        state.iron<c.iron ||
+        state.crystal<c.crystal ||
+        state.energy<c.energy;
+
+}
+
+
+/* =========================================================
+   UPGRADE
+========================================================= */
+
+function upgrade(type){
+
+    const key=
+
+        type==="armor"
+        ? "armorLv"
+
+        :
+
+        type==="fire"
+        ? "fireLv"
+
+        :
+
+        type==="bullet"
+        ? "bulletLv"
+
+        :
+
+        type==="damage"
+        ? "damageLv"
+
+        :
+
+        "engineLv";
+
+
+    const c=
+        cost(
+            type,
+            state[key]
+        );
+
+
+    if(
+        state.iron<c.iron ||
+        state.crystal<c.crystal ||
+        state.energy<c.energy
+    )
+        return;
+
+
+    state.iron-=c.iron;
+
+    state.crystal-=c.crystal;
+
+    state.energy-=c.energy;
+
+
+    state[key]++;
+
+
+    /*
+        Zırh upgrade
+    */
+
+    if(type==="armor"){
+
+        const old=
+            ship.maxHp;
+
+        ship.maxHp+=20;
+
+        ship.hp+=
+            ship.maxHp-old;
+
+    }
+
+
+    state.level=
+        Math.max(
+            state.armorLv,
+            state.fireLv,
+            state.bulletLv,
+            state.damageLv,
+            state.engineLv
+        );
+
+
+    showMessage(
+        "🔧 UPGRADE TAMAMLANDI!"
+    );
+
+
+    addParticle(
+        ship.x,
+        ship.y,
+        "#7de7ff",
+        25
+    );
+
+
+    updateUI();
+
+}
+
+
+/* =========================================================
+   BUTTONLAR
+========================================================= */
+
+document.getElementById(
+    "armorUp"
+).onclick=
+    ()=>upgrade("armor");
+
+
+document.getElementById(
+    "fireUp"
+).onclick=
+    ()=>upgrade("fire");
+
+
+document.getElementById(
+    "bulletUp"
+).onclick=
+    ()=>upgrade("bullet");
+
+
+document.getElementById(
+    "damageUp"
+).onclick=
+    ()=>upgrade("damage");
+
+
+document.getElementById(
+    "engineUp"
+).onclick=
+    ()=>upgrade("engine");
+
+
+const craft=
+    document.getElementById(
+        "craft"
+    );
+
+
+document.getElementById(
+    "craftBtn"
+).onclick=()=>{
+
+    craft.style.display=
+        "block";
+
+};
+
+
+document.getElementById(
+    "close"
+).onclick=()=>{
+
+    craft.style.display=
+        "none";
+
+};
+
+
+/* =========================================================
+   MESAJ
+========================================================= */
+
+function showMessage(txt){
+
+    const el=
+        document.getElementById(
+            "message"
+        );
+
+
+    el.textContent=txt;
+
+    el.style.opacity=1;
+
+
+    clearTimeout(
+        showMessage.timer
+    );
+
+
+    showMessage.timer=
+        setTimeout(()=>{
+
+            el.style.opacity=0;
+
+        },1200);
+
+}
+
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joystick=
+    document.getElementById(
+        "joystick"
+    );
+
+const stick=
+    document.getElementById(
+        "stick"
+    );
+
+
+function joystickMove(
+    clientX,
+    clientY
+){
+
+    const r=
+        joystick.getBoundingClientRect();
+
+
+    const cx=
+        r.left+
+        r.width/2;
+
+    const cy=
+        r.top+
+        r.height/2;
+
+
+    let dx=
+        clientX-cx;
+
+    let dy=
+        clientY-cy;
+
+
+    const max=48;
+
+    const len=
+        Math.hypot(
+            dx,
+            dy
+        );
+
+
+    if(len>max){
+
+        dx=
+            dx/len*max;
+
+        dy=
+            dy/len*max;
+
+    }
+
+
+    stick.style.transform=
+        `translate(${dx}px,${dy}px)`;
+
+
+    joy.x=
+        dx/max;
+
+    joy.y=
+        dy/max;
+
+}
+
+
+function joystickReset(){
+
+    joy.x=0;
+    joy.y=0;
+
+    stick.style.transform=
+        "translate(0,0)";
+
+    joy.active=false;
+
+}
+
+
+joystick.addEventListener(
+    "pointerdown",
+    e=>{
+
+        joy.active=true;
+
+        joy.id=
+            e.pointerId;
+
+        joystick.setPointerCapture(
+            e.pointerId
+        );
+
+        joystickMove(
+            e.clientX,
+            e.clientY
+        );
+
+    }
+);
+
+
+joystick.addEventListener(
+    "pointermove",
+    e=>{
+
+        if(joy.active){
+
+            joystickMove(
+                e.clientX,
+                e.clientY
+            );
+
+        }
+
+    }
+);
+
+
+joystick.addEventListener(
+    "pointerup",
+    joystickReset
+);
+
+
+joystick.addEventListener(
+    "pointercancel",
+    joystickReset
+);
+
+
+/* =========================================================
+   ATEŞ BUTONU
+========================================================= */
+
+const fireBtn=
+    document.getElementById(
+        "fire"
+    );
+
+
+fireBtn.addEventListener(
+    "pointerdown",
+    e=>{
+
+        e.preventDefault();
+
+        firing=true;
+
+    }
+);
+
+
+fireBtn.addEventListener(
+    "pointerup",
+    ()=>{
+
+        firing=false;
+
+    }
+);
+
+
+fireBtn.addEventListener(
+    "pointercancel",
+    ()=>{
+
+        firing=false;
+
+    }
+);
+
+
+fireBtn.addEventListener(
+    "pointerleave",
+    ()=>{
+
+        firing=false;
+
+    }
+);
+
+
+/* =========================================================
+   KLAVYE
+========================================================= */
+
+const keys={};
+
+
+addEventListener(
+    "keydown",
+    e=>{
+
+        keys[
+            e.key.toLowerCase()
+        ]=true;
+
+
+        if(e.code==="Space"){
+
+            firing=true;
+
+            e.preventDefault();
+
+        }
+
+    }
+);
+
+
+addEventListener(
+    "keyup",
+    e=>{
+
+        keys[
+            e.key.toLowerCase()
+        ]=false;
+
+
+        if(e.code==="Space"){
+
+            firing=false;
+
+        }
+
+    }
+);
+
+
+function keyboard(){
+
+    if(joy.active)
+        return;
+
+
+    let x=0;
+    let y=0;
+
+
+    if(
+        keys["a"] ||
+        keys["arrowleft"]
+    )
+        x--;
+
+
+    if(
+        keys["d"] ||
+        keys["arrowright"]
+    )
+        x++;
+
+
+    if(
+        keys["w"] ||
+        keys["arrowup"]
+    )
+        y--;
+
+
+    if(
+        keys["s"] ||
+        keys["arrowdown"]
+    )
+        y++;
+
+
+    const len=
+        Math.hypot(
+            x,
+            y
+        );
+
+
+    if(len){
+
+        joy.x=
+            x/len;
+
+        joy.y=
+            y/len;
+
+    }
+    else{
+
+        joy.x=0;
+        joy.y=0;
+
+    }
+
+}
+
+
+/* =========================================================
+   OYUN DÖNGÜSÜ
+========================================================= */
+
+function loop(){
+
+    keyboard();
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        loop
+    );
+
+}
+
+
+/* =========================================================
+   BAŞLAT
+========================================================= */
+
+updateUI();
+
+loop();
+
+</script>
+
+</body>
+</html>
+:::

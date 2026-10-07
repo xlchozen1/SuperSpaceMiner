@@ -2,3139 +2,345 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Asteroid Miner</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>MINER-01 — Deep Space Mining</title>
 <style>
-*{
-    box-sizing:border-box;
-    user-select:none;
-    -webkit-user-select:none;
+:root{
+  --bg:#030713;--panel:rgba(7,15,31,.84);--panel2:rgba(8,18,38,.96);
+  --line:rgba(76,225,255,.24);--cyan:#55eaff;--cyan2:#a1f7ff;
+  --red:#ff5870;--purple:#c983ff;--gold:#ffe27a;--green:#6ef1b1;
+  --text:#edfaff;--muted:#829ab3;
 }
-
-html,body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#02040d;
-    font-family:Arial,sans-serif;
-    color:white;
-}
-
-canvas{
-    display:block;
-    width:100%;
-    height:100%;
-    background:#02040d;
-}
-
-#ui{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-}
-
-#top{
-    position:absolute;
-    top:12px;
-    left:12px;
-    right:12px;
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-}
-
-.panel{
-    background:rgba(7,12,30,.82);
-    border:1px solid rgba(100,170,255,.3);
-    border-radius:12px;
-    padding:9px 12px;
-    backdrop-filter:blur(5px);
-    box-shadow:0 0 20px rgba(0,100,255,.12);
-}
-
-#stats{
-    min-width:220px;
-}
-
-.bar{
-    height:9px;
-    background:#172038;
-    border-radius:10px;
-    overflow:hidden;
-    margin-top:5px;
-}
-
-#hpBar{
-    height:100%;
-    width:100%;
-    background:linear-gradient(90deg,#ff315d,#ff8847);
-}
-
-.resource{
-    margin:2px 0;
-    font-size:14px;
-}
-
-#level{
-    color:#72d7ff;
-}
-
-#controls{
-    position:absolute;
-    bottom:25px;
-    left:0;
-    right:0;
-    height:180px;
-}
-
-#joystick{
-    position:absolute;
-    left:25px;
-    bottom:10px;
-    width:135px;
-    height:135px;
-    border-radius:50%;
-    background:rgba(60,90,140,.2);
-    border:2px solid rgba(130,190,255,.35);
-    pointer-events:auto;
-    touch-action:none;
-}
-
-#stick{
-    position:absolute;
-    width:62px;
-    height:62px;
-    left:50%;
-    top:50%;
-    margin-left:-31px;
-    margin-top:-31px;
-    border-radius:50%;
-    background:rgba(100,190,255,.55);
-    border:2px solid #9de3ff;
-    box-shadow:0 0 25px #278cff;
-}
-
-#fire{
-    position:absolute;
-    right:25px;
-    bottom:8px;
-    width:115px;
-    height:115px;
-    border-radius:50%;
-    border:2px solid #ff5d70;
-    background:rgba(255,40,70,.22);
-    color:#fff;
-    font-size:22px;
-    font-weight:bold;
-    pointer-events:auto;
-    touch-action:none;
-    box-shadow:0 0 30px rgba(255,30,70,.25);
-}
-
-#fire:active{
-    transform:scale(.94);
-    background:rgba(255,40,70,.45);
-}
-
-#craftBtn{
-    position:absolute;
-    right:25px;
-    bottom:150px;
-    pointer-events:auto;
-    padding:10px 15px;
-    border:1px solid #55d9ff;
-    border-radius:10px;
-    background:rgba(20,70,100,.7);
-    color:white;
-    font-weight:bold;
-}
-
-#craft{
-    display:none;
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    width:min(92vw,430px);
-    max-height:80vh;
-    overflow:auto;
-    background:rgba(5,10,27,.97);
-    border:1px solid #3d91d8;
-    border-radius:18px;
-    padding:18px;
-    pointer-events:auto;
-    box-shadow:0 0 60px rgba(0,100,255,.35);
-}
-
-#craft h2{
-    margin-top:0;
-    color:#79dfff;
-}
-
-.upgrade{
-    border:1px solid rgba(100,170,255,.25);
-    border-radius:12px;
-    padding:12px;
-    margin:9px 0;
-    background:rgba(20,35,65,.65);
-}
-
-.upgradeTitle{
-    font-weight:bold;
-    font-size:16px;
-}
-
-.upgradeDesc{
-    color:#9baac8;
-    font-size:12px;
-    margin:5px 0;
-}
-
-button{
-    cursor:pointer;
-}
-
-.upgrade button{
-    width:100%;
-    padding:9px;
-    border:0;
-    border-radius:8px;
-    background:#1265a5;
-    color:white;
-    font-weight:bold;
-}
-
-.upgrade button:disabled{
-    opacity:.35;
-}
-
-#close{
-    float:right;
-    border:0;
-    background:#26334d;
-    color:white;
-    border-radius:8px;
-    padding:7px 11px;
-}
-
-#message{
-    position:absolute;
-    left:50%;
-    top:22%;
-    transform:translateX(-50%);
-    font-weight:bold;
-    color:#8fe8ff;
-    text-shadow:0 0 12px #008cff;
-    opacity:0;
-    transition:.25s;
-    text-align:center;
-}
-
-#gameOver{
-    display:none;
-    position:absolute;
-    inset:0;
-    background:rgba(0,0,0,.75);
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    pointer-events:auto;
-}
-
-#gameOver .box{
-    background:#080d20;
-    border:1px solid #f05267;
-    border-radius:18px;
-    padding:30px;
-}
-
-#gameOver button{
-    background:#1673b8;
-    color:white;
-    border:0;
-    padding:12px 25px;
-    border-radius:9px;
-    font-weight:bold;
-}
-
-.small{
-    color:#94a9cc;
-    font-size:12px;
-}
-
-#pickupHint{
-    position:absolute;
-    bottom:205px;
-    left:50%;
-    transform:translateX(-50%);
-    color:#8fe8ff;
-    font-size:13px;
-    opacity:0;
-    transition:.2s;
-    text-shadow:0 0 10px #008cff;
-    white-space:nowrap;
-}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:#030713;cursor:none}
+button{font:inherit;color:inherit}
+#ui{position:fixed;inset:0;pointer-events:none}
+.panel{pointer-events:auto}
+.top{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 0 25px rgba(0,190,255,.05),inset 0 0 22px rgba(0,210,255,.025)}
+.shipBox{padding:9px 11px;min-width:220px}.shipTitle{font-weight:900;letter-spacing:.05em}.sub{font-size:10px;color:var(--muted);margin-top:2px}
+.resources{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px;max-width:min(720px,60vw)}
+.res{font-size:11px;font-weight:800;padding:4px 7px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.025);white-space:nowrap}.iron{color:#d8e0e8}.copper{color:#ffb36a}.silicon{color:#8ae8ff}.crystal{color:#d59cff}.energy{color:#ffe17a}.titanium{color:#d4ddff}.uranium{color:#89ffb8}.nanite{color:#ff94ce}
+.actions{display:flex;gap:6px}.actionBtn{border:1px solid rgba(85,234,255,.28);border-radius:10px;background:rgba(12,42,62,.85);padding:9px 11px;font-weight:900;font-size:11px;cursor:pointer}.actionBtn:hover{border-color:rgba(85,234,255,.7)}
+.hp{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(480px,calc(100vw - 24px));padding:9px 11px}.hpRow{display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:6px}.hpText{font-family:ui-monospace,Consolas,monospace;color:#c7f6ff}.bar{height:9px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.04)}.fill{height:100%;width:100%;background:linear-gradient(90deg,#ff4962,#ffac58);box-shadow:0 0 14px rgba(255,75,95,.28)}.shieldRow{margin-top:6px}.shieldFill{background:linear-gradient(90deg,#51c8ff,#8aa7ff)}.status{text-align:center;color:var(--muted);font-size:10px;margin-top:6px;letter-spacing:.03em}
+.toast{position:absolute;left:50%;top:80px;transform:translate(-50%,-6px);padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:rgba(4,12,25,.86);font-size:12px;font-weight:800;opacity:0;transition:.16s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+.warning{position:absolute;left:50%;top:117px;transform:translateX(-50%);padding:9px 14px;border:1px solid rgba(255,88,112,.5);border-radius:999px;background:rgba(50,7,16,.82);color:#ffc4cd;box-shadow:0 0 22px rgba(255,60,85,.13);font-size:11px;font-weight:900;letter-spacing:.06em;opacity:0;transition:.18s}.warning.show{opacity:1}
+.help{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);color:rgba(175,205,228,.55);font-size:10px;white-space:nowrap}.crosshair{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;pointer-events:none}.crosshair:before,.crosshair:after{content:"";position:absolute;background:rgba(154,246,255,.8);box-shadow:0 0 7px rgba(85,234,255,.5)}.crosshair:before{width:24px;height:1px;top:11px}.crosshair:after{width:1px;height:24px;left:11px}.crosshair i{position:absolute;inset:8px;border:1px solid rgba(154,246,255,.7);border-radius:50%}
+.mini{position:absolute;right:10px;bottom:95px;width:170px;padding:7px}.miniTitle{font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px}.mini canvas{width:100%;height:110px;display:block;background:rgba(0,0,0,.15);border-radius:8px}
+#mobile{display:none;position:absolute;inset:0}.joyArea{position:absolute;left:12px;bottom:13px;width:145px;height:145px;border-radius:50%;pointer-events:auto}.joyBase{position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(122,225,255,.24);background:radial-gradient(circle,rgba(49,105,133,.18),rgba(0,0,0,.06));box-shadow:inset 0 0 30px rgba(0,210,255,.05)}.joyStick{position:absolute;left:42px;top:42px;width:61px;height:61px;border-radius:50%;border:1px solid rgba(164,248,255,.7);background:radial-gradient(circle at 35% 28%,rgba(118,239,255,.4),rgba(10,59,84,.82));box-shadow:0 0 17px rgba(85,234,255,.15)}
+.fire{position:absolute;right:13px;bottom:19px;width:116px;height:116px;border-radius:50%;pointer-events:auto;border:2px solid rgba(255,97,119,.55);background:radial-gradient(circle at 35% 28%,rgba(255,108,128,.42),rgba(74,12,27,.9));box-shadow:0 0 28px rgba(255,61,89,.14);font-weight:900;letter-spacing:.08em}.fire:active{transform:scale(.95)}
+.modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,3,9,.58);pointer-events:auto}.modal.show{display:flex}.window{width:min(880px,calc(100vw - 20px));max-height:min(88vh,820px);overflow:auto;background:linear-gradient(180deg,rgba(9,19,39,.98),rgba(4,10,23,.99));border:1px solid rgba(85,234,255,.28);border-radius:18px;padding:16px;box-shadow:0 0 65px rgba(0,190,255,.09)}.winHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.winHead h2{margin:0;font-size:19px;letter-spacing:.07em}.close{width:35px;height:35px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);cursor:pointer}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}.tab{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);border-radius:8px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer}.tab.active{border-color:rgba(85,234,255,.35);color:var(--cyan2);background:rgba(30,110,133,.17)}
+.upGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.upCard{border:1px solid rgba(255,255,255,.075);border-radius:12px;padding:10px;background:rgba(255,255,255,.016)}.upTop{display:flex;justify-content:space-between;gap:8px}.upName{font-weight:900}.upLv{font-size:10px;color:var(--cyan)}.upDesc{font-size:10px;color:#91abc1;line-height:1.4;min-height:34px;margin:6px 0}.costs{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.cost{font-size:9px;font-weight:900;padding:4px 5px;border-radius:6px;background:rgba(255,255,255,.045)}.cost.no{opacity:.38}.upBtn{width:100%;height:34px;border-radius:8px;border:1px solid rgba(85,234,255,.22);background:rgba(23,92,119,.25);font-size:10px;font-weight:900;cursor:pointer}.upBtn:disabled{opacity:.34;cursor:not-allowed}
+.saveGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.saveCard{border:1px solid rgba(255,255,255,.075);border-radius:12px;padding:12px}.saveCard h3{margin:0 0 6px;font-size:13px}.saveCard p{margin:0;color:#93abc0;font-size:10px;line-height:1.5}.saveActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.saveActions button{border:1px solid rgba(85,234,255,.22);background:rgba(30,96,120,.25);border-radius:8px;padding:8px 10px;font-size:10px;font-weight:900;cursor:pointer}.danger{border-color:rgba(255,88,112,.3)!important;background:rgba(90,20,31,.3)!important}
+.boot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#030713;pointer-events:auto;z-index:5}.bootCard{width:min(560px,calc(100vw - 24px));padding:24px;text-align:center;background:rgba(7,15,31,.95);border:1px solid rgba(85,234,255,.24);border-radius:18px;box-shadow:0 0 60px rgba(0,190,255,.07)}.logo{font-size:30px;font-weight:900;letter-spacing:.14em;color:var(--cyan)}.bootSub{color:#8ca7be;font-size:11px;line-height:1.55;margin:9px 0 16px}.bootBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bootBtn{height:44px;border-radius:10px;border:1px solid rgba(85,234,255,.3);background:rgba(19,81,103,.5);font-weight:900;cursor:pointer}.bootBtn.secondary{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.035)}
+.dead{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(42,4,11,.4),rgba(0,2,7,.9));pointer-events:auto;z-index:4}.dead.show{display:flex}.deadCard{text-align:center;width:min(450px,calc(100vw - 25px));padding:25px;border:1px solid rgba(255,81,107,.34);border-radius:18px;background:rgba(13,7,16,.96);box-shadow:0 0 60px rgba(255,61,91,.1)}.deadCard h1{margin:0 0 7px;color:#ff9dac;font-size:26px}.deadCard p{color:#9fb1c2;font-size:11px}.restart{width:100%;height:44px;border-radius:10px;border:1px solid rgba(85,234,255,.3);background:rgba(21,93,118,.35);font-weight:900;cursor:pointer}
+@media(max-width:900px){.resources{max-width:55vw}.coords{display:none}.help{display:none}.mini{display:none}.hp{bottom:166px}#mobile{display:block}.crosshair{display:none}.actions .actionBtn{font-size:10px;padding:8px}.shipBox{min-width:145px}.sub{display:none}.upGrid{grid-template-columns:1fr}.saveGrid{grid-template-columns:1fr}}
+@media(max-width:600px){.resources{display:none}.top{align-items:flex-start}.actions{margin-left:auto}.hp{width:calc(100vw - 18px);bottom:160px}.window{padding:12px}.bootBtns{grid-template-columns:1fr}.shipTitle{font-size:12px}.actionBtn{min-width:54px}}
 </style>
 </head>
-
 <body>
-
 <canvas id="game"></canvas>
-
 <div id="ui">
-
-    <div id="top">
-        <div class="panel" id="stats">
-            <div>
-                🚀 <b>MINER-01</b> —
-                Lv.<span id="level">0</span>
-            </div>
-
-            <div class="bar">
-                <div id="hpBar"></div>
-            </div>
-
-            <div class="small">
-                Zırh:
-                <span id="hpText">60 / 60</span>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="resource">
-                🔩 Demir: <b id="iron">0</b>
-            </div>
-
-            <div class="resource">
-                💎 Kristal: <b id="crystal">0</b>
-            </div>
-
-            <div class="resource">
-                ⚡ Enerji: <b id="energy">0</b>
-            </div>
-        </div>
+  <div class="top">
+    <div class="box shipBox">
+      <div class="shipTitle" id="shipTitle">🚀 MINER-01 — Lv.0</div>
+      <div class="sub">DEEP SPACE MINING VESSEL · <span id="saveState">KAYIT YOK</span></div>
     </div>
-
-    <div id="message"></div>
-
-    <div id="pickupHint">
-        📦 Kaynağı almak için üzerinden geç
+    <div class="box resources" id="resourceHud"></div>
+    <div class="actions">
+      <button class="box actionBtn panel" id="craftBtn">⚙ CRAFT</button>
+      <button class="box actionBtn panel" id="saveBtn">💾 KAYDET</button>
     </div>
+  </div>
 
-    <button id="craftBtn">
-        🔧 GEMİ / CRAFT
-    </button>
+  <div class="crosshair" id="crosshair" style="left:50%;top:50%"><i></i></div>
+  <div class="toast" id="toast"></div>
+  <div class="warning" id="warning">⚠ UZAKTA DÜŞMAN TESPİT EDİLDİ</div>
 
-    <div id="controls">
+  <div class="box hp">
+    <div class="hpRow"><span>HULL INTEGRITY</span><span class="hpText" id="hpText">60 / 60 HP</span></div>
+    <div class="bar"><div class="fill" id="hpFill"></div></div>
+    <div class="hpRow shieldRow"><span>SHIELD</span><span class="hpText" id="shieldText">0 / 0</span></div>
+    <div class="bar"><div class="fill shieldFill" id="shieldFill" style="width:0%"></div></div>
+    <div class="status" id="status">Motor beklemede · Atalet korunuyor</div>
+  </div>
 
-        <div id="joystick">
-            <div id="stick"></div>
-        </div>
+  <div class="help">Mouse: yön · Sağ tık: itki · Sol tık: ateş · C: Craft · F5: Kaydet</div>
 
-        <button id="fire">
-            ATEŞ<br>🔥
-        </button>
+  <div class="box mini panel" id="miniWrap">
+    <div class="miniTitle">LOCAL RADAR</div>
+    <canvas id="miniMap"></canvas>
+  </div>
 
+  <div id="mobile">
+    <div class="joyArea panel" id="joyArea"><div class="joyBase"></div><div class="joyStick" id="joyStick"></div></div>
+    <button class="fire panel" id="fireBtn">ATEŞ</button>
+  </div>
+
+  <div class="modal" id="craftModal">
+    <div class="window panel">
+      <div class="winHead"><h2>⚙ GEMİ SİSTEMLERİ</h2><button class="close" id="craftClose">✕</button></div>
+      <div class="tabs">
+        <button class="tab active" data-tab="ship">GEMİ</button>
+        <button class="tab" data-tab="weapons">SİLAH</button>
+        <button class="tab" data-tab="utility">YARDIMCI</button>
+      </div>
+      <div class="upGrid" id="upgradeGrid"></div>
     </div>
+  </div>
 
-    <div id="craft">
-
-        <button id="close">✕</button>
-
-        <h2>🔧 Gemi Sistemleri</h2>
-
-        <div class="small">
-            Gemin şu anda Level 0.
-            Kaynakları toplayarak sistemlerini geliştir.
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgradeTitle">
-                🛡️ Zırh
-            </div>
-
-            <div class="upgradeDesc">
-                Maksimum canı artırır.
-                Seviye:
-                <b id="armorLv">0</b>
-            </div>
-
-            <button id="armorUp"></button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgradeTitle">
-                ⚡ Ateş Sıklığı
-            </div>
-
-            <div class="upgradeDesc">
-                Ateş etme bekleme süresini azaltır.
-                Seviye:
-                <b id="fireLv">0</b>
-            </div>
-
-            <button id="fireUp"></button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgradeTitle">
-                🚀 Mermi Hızı
-            </div>
-
-            <div class="upgradeDesc">
-                Mermiler daha hızlı gider.
-                Seviye:
-                <b id="bulletLv">0</b>
-            </div>
-
-            <button id="bulletUp"></button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgradeTitle">
-                💥 Mermi Hasarı
-            </div>
-
-            <div class="upgradeDesc">
-                Mermilerin verdiği hasarı artırır.
-                Seviye:
-                <b id="damageLv">0</b>
-            </div>
-
-            <button id="damageUp"></button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgradeTitle">
-                ⚙️ Motor
-            </div>
-
-            <div class="upgradeDesc">
-                Geminin maksimum hareket hızını artırır.
-                Seviye:
-                <b id="engineLv">0</b>
-            </div>
-
-            <button id="engineUp"></button>
-
-        </div>
-
+  <div class="modal" id="saveModal">
+    <div class="window panel">
+      <div class="winHead"><h2>💾 KAYIT YÖNETİMİ</h2><button class="close" id="saveClose">✕</button></div>
+      <div class="saveGrid">
+        <div class="saveCard"><h3>💾 Manuel Kayıt</h3><p>Konum, kaynaklar, gemi seviyeleri ve istatistikler tarayıcının yerel hafızasına kaydedilir.</p><div class="saveActions"><button id="manualSave">KAYDET</button><button id="exportSave">DIŞA AKTAR</button></div></div>
+        <div class="saveCard"><h3>📂 Kayıt Yükle</h3><p>Mevcut kayıt varsa gemini son kayıtlı konum ve ilerleme ile geri getir.</p><div class="saveActions"><button id="manualLoad">YÜKLE</button><button id="importSave">İÇE AKTAR</button></div></div>
+        <div class="saveCard"><h3>🔄 Otomatik Kayıt</h3><p id="autoSaveInfo">Her 10 saniyede bir otomatik kayıt yapılır.</p><div class="saveActions"><button id="saveNow2">ŞİMDİ KAYDET</button></div></div>
+        <div class="saveCard"><h3>⚠ Kayıt Sıfırla</h3><p>Yerel kayıt tamamen silinir. Bu işlem geri alınamaz.</p><div class="saveActions"><button class="danger" id="resetSave">KAYDI SİL</button></div></div>
+      </div>
     </div>
+  </div>
 
-    <div id="gameOver">
+  <div class="dead" id="dead">
+    <div class="deadCard panel"><h1>💥 GEMİ YOK OLDU</h1><p id="deadText"></p><button class="restart" id="restart">↻ YENİ SEFER</button></div>
+  </div>
 
-        <div class="box">
-
-            <h1>💥 GEMİ YOK OLDU</h1>
-
-            <p>
-                Gemin yok edildi.
-            </p>
-
-            <button onclick="location.reload()">
-                TEKRAR OYNA
-            </button>
-
-        </div>
-
+  <div class="boot" id="boot">
+    <div class="bootCard panel">
+      <div class="logo">MINER-01</div>
+      <div class="bootSub">Sonsuz uzayda kaynak topla, gemini geliştir, nadir bölgeleri keşfet. Kayıt sistemi yerleşiktir ve tek HTML dosyasında çalışır.</div>
+      <div class="bootBtns"><button class="bootBtn" id="newGame">YENİ SEFER</button><button class="bootBtn secondary" id="continueGame">KAYDI YÜKLE</button></div>
+      <div style="margin-top:10px;font-size:9px;color:#69839c" id="bootSaveText">Kayıt aranıyor…</div>
     </div>
-
+  </div>
 </div>
-
 <script>
+(() => {
+'use strict';
 
-/* =========================================================
-   TEMEL SİSTEM
-========================================================= */
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{alpha:false});
+const mini=document.getElementById('miniMap'),mctx=mini.getContext('2d');
+let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);canvas.width=Math.floor(W*DPR);canvas.height=Math.floor(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);mini.width=340;mini.height=220;}
+addEventListener('resize',resize);resize();
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-
-let W,H;
-
-function resize(){
-
-    W=innerWidth;
-    H=innerHeight;
-
-    canvas.width=W*devicePixelRatio;
-    canvas.height=H*devicePixelRatio;
-
-    canvas.style.width=W+"px";
-    canvas.style.height=H+"px";
-
-    ctx.setTransform(
-        devicePixelRatio,
-        0,
-        0,
-        devicePixelRatio,
-        0,
-        0
-    );
-}
-
-resize();
-
-addEventListener("resize",resize);
-
-
-/* =========================================================
-   OYUNCU İSTATİSTİKLERİ
-   LEVEL 0 BAŞLANGICI
-========================================================= */
-
-const state={
-
-    iron:0,
-    crystal:0,
-    energy:0,
-
-    level:0,
-
-    armorLv:0,
-    fireLv:0,
-    bulletLv:0,
-    damageLv:0,
-    engineLv:0
+const SAVE_KEY='miner01_expanded_v3';
+const state={running:false,dead:false,paused:false,time:0,kills:0,mined:0,pickups:0,shots:0,saveTime:0,toast:0,warning:0,shake:0,flash:0,enemyTimer:0,nextEnemy:15};
+const resources={iron:0,copper:0,silicon:0,crystal:0,energy:0,titanium:0,uranium:0,nanite:0};
+const resourceDefs={
+ iron:{name:'Demir',icon:'🔩',color:'#d8e0e8'},copper:{name:'Bakır',icon:'🟠',color:'#ffb36a'},silicon:{name:'Silikon',icon:'◈',color:'#8ae8ff'},crystal:{name:'Kristal',icon:'💎',color:'#d59cff'},energy:{name:'Enerji',icon:'⚡',color:'#ffe17a'},titanium:{name:'Titanyum',icon:'⬡',color:'#d4ddff'},uranium:{name:'Uranyum',icon:'☢',color:'#89ffb8'},nanite:{name:'Nanite',icon:'✦',color:'#ff94ce'}
+};
+const upgrades={armor:0,engine:0,fireRate:0,bulletSpeed:0,damage:0,regen:0,cargo:0,magnet:0,shield:0,scanner:0,yield:0,crit:0};
+const upDefs={
+ armor:{tab:'ship',icon:'🛡️',name:'Zırh',desc:'+20 maksimum HP ve daha yüksek çarpışma dayanımı.',base:{iron:8,crystal:2}},
+ engine:{tab:'ship',icon:'⚙️',name:'Motor',desc:'İvmeyi ve frenleme gücünü artırır. Maksimum hızı artırmaz.',base:{iron:14,copper:4,energy:2}},
+ regen:{tab:'ship',icon:'❤️',name:'Can Yenilenmesi',desc:'Hasar almadıktan 3.2 sn sonra HP yeniler.',base:{iron:10,crystal:2,energy:4}},
+ shield:{tab:'ship',icon:'🔰',name:'Kalkan',desc:'Hasardan önce enerji kalkanı hasarı emer; zamanla yeniden dolar.',base:{silicon:8,crystal:3,energy:5}},
+ fireRate:{tab:'weapons',icon:'⚡',name:'Ateş Sıklığı',desc:'Mermiler arasındaki bekleme süresini azaltır.',base:{copper:8,crystal:2,energy:2}},
+ bulletSpeed:{tab:'weapons',icon:'🚀',name:'Mermi Hızı',desc:'Mermi hızını belirgin biçimde artırır.',base:{copper:7,silicon:3,energy:2}},
+ damage:{tab:'weapons',icon:'💥',name:'Mermi Hasarı',desc:'Asteroid ve düşmanlara verilen temel hasarı artırır.',base:{iron:12,copper:4,crystal:2}},
+ crit:{tab:'weapons',icon:'🎯',name:'Kritik Atış',desc:'Mermilerin daha yüksek hasar verecek kritik vuruş şansını artırır.',base:{copper:12,crystal:3,nanite:1}},
+ cargo:{tab:'utility',icon:'📦',name:'Kargo Ambarı',desc:'Toplanabilecek toplam fiziksel kaynak kapasitesini artırır.',base:{iron:10,copper:7,silicon:2}},
+ magnet:{tab:'utility',icon:'🧲',name:'Manyetik Toplayıcı',desc:'Pickup çekim menzilini ve çekiş gücünü artırır.',base:{copper:8,silicon:5,energy:2}},
+ scanner:{tab:'utility',icon:'📡',name:'Tarayıcı',desc:'Radar menzilini ve uzak bölgelerde nadir kaynak ihtimalini artırır.',base:{silicon:10,crystal:4,energy:3}},
+ yield:{tab:'utility',icon:'⛏️',name:'Madencilik Verimi',desc:'Asteroidlerden düşen kaynak miktarını artırır.',base:{iron:14,titanium:2,crystal:2}}
 };
 
+const player={x:0,y:0,vx:0,vy:0,angle:0,hp:60,maxHp:60,shield:0,maxShield:0,shieldDelay:0,invuln:0,fireTimer:0,lastDamage:-9999,radius:16};
+const camera={x:0,y:0};
+const input={pcLeft:false,pcRight:false,mobile:false,mx:innerWidth/2,my:innerHeight/2,joyX:0,joyY:0,joyMag:0,joyAngle:0,joyPointer:null,firePointer:null,mobileFire:false};
+const asteroids=[],bullets=[],enemyBullets=[],enemies=[],pickups=[],particles=[],stars=[];
+let audio=null;
+function audioUnlock(){if(audio)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();if(audio.state==='suspended')audio.resume()}catch(e){}}
+function beep(f,d=.04,type='sine',vol=.015,slide=0){if(!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=f;if(slide)o.frequency.linearRampToValueAtTime(f+slide,audio.currentTime+d);g.gain.value=vol;g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d)}catch(e){}}
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function worldScreen(x,y){return{x:x-camera.x+W/2,y:y-camera.y+H/2}}
+function showToast(t,ms=1000){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');state.toast=ms}
+function showWarn(ms=2800){document.getElementById('warning').classList.add('show');state.warning=ms}
 
-/*
-    ÖNCEKİ SÜRÜME GÖRE ÇOK DAHA DÜŞÜK
-    BAŞLANGIÇ İSTATİSTİKLERİ
-*/
+for(let i=0;i<520;i++)stars.push({x:Math.random(),y:Math.random(),r:rand(.2,1.5),a:rand(.1,.7),d:rand(.03,.55)});
 
-const BASE_MAX_HP=60;
+function level(){return Math.max(...Object.values(upgrades))}
+function cargoCapacity(){return 120+upgrades.cargo*40}
+function cargoUsed(){return Object.values(resources).reduce((a,b)=>a+b,0)}
+function accel(){return .115*(1+upgrades.engine*.24)}
+function maxSpeed(){return 475}
+function fireCooldown(){return Math.max(105,1000*Math.pow(.89,upgrades.fireRate))}
+function bulletSpeed(){return 190+upgrades.bulletSpeed*62}
+function bulletDamage(){return 5+upgrades.damage*3}
+function regenRate(){return upgrades.regen*.5}
+function shieldMax(){return upgrades.shield*16}
+function shieldRecharge(){return .5+upgrades.shield*.15}
+function magnetRange(){return 125+upgrades.magnet*55+upgrades.scanner*8}
+function critChance(){return Math.min(.35,upgrades.crit*.035)}
+function rarityMultiplier(){return 1+upgrades.scanner*.08}
+function yieldMultiplier(){return 1+upgrades.yield*.14}
 
-const ship={
-
-    // Dünya koordinatları
-    x:0,
-    y:0,
-
-    r:17,
-
-    hp:BASE_MAX_HP,
-    maxHp:BASE_MAX_HP,
-
-    angle:0,
-
-    fireTimer:0,
-
-    invincible:0
-};
-
-
-/* =========================================================
-   KAMERA
-========================================================= */
-
-const camera={
-    x:0,
-    y:0,
-
-    // Kameranın yumuşak takip hızı
-    smooth:.08
-};
-
-function updateCamera(){
-
-    camera.x+=(ship.x-camera.x)*camera.smooth;
-    camera.y+=(ship.y-camera.y)*camera.smooth;
-
+function asteroidType(){
+ const r=Math.random();
+ if(r<.46)return 'metal';
+ if(r<.66)return 'copper';
+ if(r<.82)return 'silicon';
+ if(r<.92)return 'crystal';
+ if(r<.975)return 'energy';
+ if(r<.995)return 'titanium';
+ return 'uranium';
 }
-
-
-/*
-    Dünya koordinatını ekran koordinatına çeviriyoruz.
-*/
-
-function screenX(worldX){
-    return worldX-camera.x+W/2;
+function createAsteroid(x,y){
+ const radius=rand(21,58), type=asteroidType(), sides=8+Math.floor(Math.random()*4), verts=[];
+ for(let i=0;i<sides;i++)verts.push({a:i/sides*Math.PI*2,r:radius*rand(.78,1.18)});
+ let baseHP=radius*1.65+rand(15,30); if(type==='titanium')baseHP*=1.45;if(type==='uranium')baseHP*=1.75;
+ return{x,y,radius,hp:baseHP,maxHp:baseHP,rot:Math.random()*Math.PI*2,spin:rand(-.0008,.0008),verts,type,flash:0};
 }
-
-function screenY(worldY){
-    return worldY-camera.y+H/2;
-}
-
-
-/* =========================================================
-   OYUN NESNELERİ
-========================================================= */
-
-let asteroids=[];
-let bullets=[];
-let enemies=[];
-let enemyBullets=[];
-let particles=[];
-
-
-/*
-    YENİ:
-    Asteroitlerden düşen kaynaklar
-*/
-
-let pickups=[];
-
-
-/*
-    Sonsuz uzay yıldızları için sabit dünya koordinatları.
-*/
-
-let stars=[];
-
-for(let i=0;i<500;i++){
-
-    stars.push({
-
-        x:(Math.random()-.5)*5000,
-        y:(Math.random()-.5)*5000,
-
-        r:Math.random()*1.5+.2,
-
-        a:Math.random()
-    });
-}
-
-
-let shake=0;
-
-
-/* =========================================================
-   JOYSTICK
-========================================================= */
-
-const joy={
-    active:false,
-    x:0,
-    y:0,
-    id:null
-};
-
-let firing=false;
-
-
-/* =========================================================
-   RANDOM
-========================================================= */
-
-function rand(a,b){
-    return Math.random()*(b-a)+a;
-}
-
-function randInt(a,b){
-    return Math.floor(rand(a,b+1));
-}
-
-function dist(a,b){
-    return Math.hypot(
-        a.x-b.x,
-        a.y-b.y
-    );
-}
-
-
-/* =========================================================
-   LEVEL 0 STATLARI
-========================================================= */
-
-/*
-    Level 0:
-    
-    Hareket:
-    0.85
-
-    Ateş aralığı:
-    70 frame
-    ≈ 1.16 saniye
-
-    Mermi:
-    4
-
-    Hasar:
-    5
-
-    Zırh:
-    60
-*/
-
-function engineSpeed(){
-
-    return .85+
-        state.engineLv*.30;
-
-}
-
-function fireDelay(){
-
-    return Math.max(
-        14,
-        70-state.fireLv*8
-    );
-
-}
-
-function bulletSpeed(){
-
-    return 4+
-        state.bulletLv*.8;
-
-}
-
-function damage(){
-
-    return 5+
-        state.damageLv*3;
-
-}
-
-
-/* =========================================================
-   ASTEROİT
-========================================================= */
-
 function spawnAsteroid(){
-
-    /*
-        Geminin etrafında değil,
-        kameranın uzağında üret.
-    */
-
-    const angle=Math.random()*Math.PI*2;
-
-    const distance=rand(
-        450,
-        850
-    );
-
-    const x=
-        ship.x+
-        Math.cos(angle)*distance;
-
-    const y=
-        ship.y+
-        Math.sin(angle)*distance;
-
-    const size=rand(18,42);
-
-    asteroids.push({
-
-        x,
-        y,
-
-        r:size,
-
-        hp:Math.ceil(size/8),
-
-        vx:rand(-.08,.08),
-        vy:rand(-.08,.08),
-
-        rot:Math.random()*Math.PI*2,
-
-        spin:rand(-.01,.01)
-
-    });
-
+ for(let z=0;z<10;z++){
+  const a=Math.random()*Math.PI*2,d=rand(460,1650),x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d;
+  let ok=true;for(const q of asteroids)if(Math.hypot(x-q.x,y-q.y)<105){ok=false;break}
+  if(ok){asteroids.push(createAsteroid(x,y));return}
+ }
 }
+function ensureAsteroids(){while(asteroids.length<44)spawnAsteroid()}
 
-
-/* =========================================================
-   DÜŞMAN
-========================================================= */
+function dropForAsteroid(a){
+ const drops=[];let count=Math.max(1,Math.floor(rand(1.5,3.4)*(a.radius/34+0.35)*yieldMultiplier()));
+ const distFromOrigin=Math.hypot(a.x,a.y);
+ for(let i=0;i<count;i++){
+  let type='iron',roll=Math.random();
+  if(a.type==='metal'){type=roll<.58?'iron':roll<.9?'copper':'titanium'}
+  else if(a.type==='copper'){type=roll<.65?'copper':roll<.92?'iron':'silicon'}
+  else if(a.type==='silicon'){type=roll<.62?'silicon':roll<.9?'crystal':'nanite'}
+  else if(a.type==='crystal'){type=roll<.52?'crystal':roll<.82?'silicon':'energy'}
+  else if(a.type==='energy'){type=roll<.65?'energy':roll<.9?'crystal':'uranium'}
+  else if(a.type==='titanium'){type=roll<.48?'titanium':roll<.82?'iron':'uranium'}
+  else type=roll<.55?'uranium':roll<.9?'energy':'nanite';
+  if(distFromOrigin>2600 && Math.random()<.08*rarityMultiplier()) type=['titanium','uranium','nanite'][Math.floor(Math.random()*3)];
+  let value=1;if(type==='iron'||type==='copper')value=Math.floor(rand(2,5));else if(type==='silicon'||type==='crystal')value=Math.floor(rand(1,3));else value=Math.floor(rand(1,2));
+  const ang=Math.random()*Math.PI*2,s=rand(55,150);
+  pickups.push({x:a.x,y:a.y,vx:Math.cos(ang)*s,vy:Math.sin(ang)*s,r:9,type,value,life:28000,phase:Math.random()*Math.PI*2});
+ }
+}
+function destroyAsteroid(a){a.dead=true;state.mined++;state.shake=Math.max(state.shake,8);burst(a.x,a.y,a.type==='uranium'?'#8dffae':'#c9d0d8',18,190);dropForAsteroid(a);beep(120,.08,'sawtooth',.02,-40)}
 
 function spawnEnemy(){
-
-    if(enemies.length>=2)
-        return;
-
-    const angle=
-        Math.random()*Math.PI*2;
-
-    const distance=
-        rand(700,950);
-
-    enemies.push({
-
-        x:
-            ship.x+
-            Math.cos(angle)*distance,
-
-        y:
-            ship.y+
-            Math.sin(angle)*distance,
-
-        r:18,
-
-        hp:
-            25+
-            state.level*8,
-
-        maxHp:
-            25+
-            state.level*8,
-
-        fire:rand(2,4),
-
-        vx:rand(-.25,.25),
-        vy:rand(-.25,.25)
-
-    });
-
-    showMessage(
-        "⚠️ UZAKTA DÜŞMAN TESPİT EDİLDİ"
-    );
-
+ if(enemies.length>=2||state.dead)return;
+ const a=Math.random()*Math.PI*2,d=rand(1100,1750),e={x:player.x+Math.cos(a)*d,y:player.y+Math.sin(a)*d,vx:0,vy:0,angle:0,r:19,hp:70+level()*9,maxHp:70+level()*9,cool:rand(900,1500),flash:0,dead:false};
+ enemies.push(e);showWarn(3200);beep(240,.15,'sawtooth',.02,-90)
 }
+function destroyEnemy(e){e.dead=true;state.kills++;state.shake=Math.max(state.shake,12);burst(e.x,e.y,'#ff6179',28,240);for(const [type,value] of [['energy',4],['crystal',2],['titanium',1],['nanite',1]]){const a=Math.random()*Math.PI*2,s=rand(60,150);pickups.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:10,type,value,life:32000,phase:Math.random()*Math.PI*2})}showToast('💥 Düşman yok edildi · nadir kaynaklar düştü',1600);beep(95,.2,'sawtooth',.028,-65)}
 
+function spawnParticle(x,y,o={}){if(particles.length>750)return;const life=o.life??rand(220,600);particles.push({x,y,vx:o.vx??rand(-70,70),vy:o.vy??rand(-70,70),life,maxLife:life,size:o.size??rand(1.2,3.2),color:o.color??'#7fefff',drag:o.drag??.965,glow:o.glow??0})}
+function burst(x,y,color,n=16,s=160){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=rand(s*.35,s);spawnParticle(x,y,{vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,color,size:rand(1.2,3.5),life:rand(220,620),glow:8})}}
+function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;if(p.life<=0){particles.splice(i,1);continue}p.vx*=Math.pow(p.drag,dt/16);p.vy*=Math.pow(p.drag,dt/16);p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000}}
 
-/*
-    Düşmanlar artık biraz daha seyrek.
-*/
-
-setInterval(()=>{
-
-    if(Math.random()<.14){
-
-        spawnEnemy();
-
-    }
-
-},6000);
-
-
-/* =========================================================
-   PARÇACIK
-========================================================= */
-
-function addParticle(
-    x,
-    y,
-    color,
-    count=10
-){
-
-    for(let i=0;i<count;i++){
-
-        particles.push({
-
-            x,
-            y,
-
-            vx:rand(-2.5,2.5),
-            vy:rand(-2.5,2.5),
-
-            life:rand(20,45),
-            max:45,
-
-            color
-
-        });
-
-    }
-
+function desktop(){return matchMedia('(hover:hover) and (pointer:fine)').matches}
+function aimAngle(){return input.mobile? (input.joyMag>.05?input.joyAngle:player.angle) : Math.atan2(input.my-H/2,input.mx-W/2)}
+function thrustAmount(){return input.mobile?input.joyMag:(input.pcRight?1:0)}
+function updatePlayer(dt){
+ if(state.dead)return;
+ player.invuln=Math.max(0,player.invuln-dt);player.shieldDelay=Math.max(0,player.shieldDelay-dt);state.flash=Math.max(0,state.flash-dt);
+ const a=aimAngle();if(!input.mobile||input.joyMag>.05)player.angle=a;
+ const throttle=thrustAmount();
+ if(throttle>.005){const ac=accel()*throttle;player.vx+=Math.cos(player.angle)*ac*dt;player.vy+=Math.sin(player.angle)*ac*dt;if(Math.random()<.55*throttle){spawnParticle(player.x-Math.cos(player.angle)*15,player.y-Math.sin(player.angle)*15,{vx:-Math.cos(player.angle)*rand(55,125)-player.vx*.08,vy:-Math.sin(player.angle)*rand(55,125)-player.vy*.08,color:Math.random()<.5?'#55eaff':'#fff',size:rand(1.1,2.7),life:rand(90,210),glow:9})}}
+ const drag=Math.pow(.9992,dt);player.vx*=drag;player.vy*=drag;let sp=Math.hypot(player.vx,player.vy);if(sp>maxSpeed()){player.vx*=maxSpeed()/sp;player.vy*=maxSpeed()/sp}
+ player.x+=player.vx*dt/1000;player.y+=player.vy*dt/1000;
+ if(regenRate()>0&&state.time-player.lastDamage>3200&&player.hp<player.maxHp)player.hp=Math.min(player.maxHp,player.hp+regenRate()*dt/1000);
+ if(upgrades.shield>0&&state.time-player.lastDamage>1600&&player.shield<player.maxShield)player.shield=Math.min(player.maxShield,player.shield+shieldRecharge()*dt/1000);
+ player.fireTimer-=dt;if((input.pcLeft||input.mobileFire)&&player.fireTimer<=0)shoot();
+ camera.x+=(player.x-camera.x)*clamp(.0022*dt,0,.15);camera.y+=(player.y-camera.y)*clamp(.0022*dt,0,.15);
 }
-
-
-/* =========================================================
-   ATEŞ
-========================================================= */
-
 function shoot(){
-
-    if(ship.fireTimer>0)
-        return;
-
-    const angle=ship.angle;
-
-    bullets.push({
-
-        x:
-            ship.x+
-            Math.cos(angle)*22,
-
-        y:
-            ship.y+
-            Math.sin(angle)*22,
-
-        vx:
-            Math.cos(angle)*
-            bulletSpeed(),
-
-        vy:
-            Math.sin(angle)*
-            bulletSpeed(),
-
-        r:4,
-
-        life:110,
-
-        damage:damage()
-
-    });
-
-    ship.fireTimer=
-        fireDelay();
-
-    addParticle(
-
-        ship.x+
-        Math.cos(angle)*22,
-
-        ship.y+
-        Math.sin(angle)*22,
-
-        "#8eeaff",
-
-        3
-
-    );
-
+ if(state.dead)return;const ang=player.angle,nx=player.x+Math.cos(ang)*22,ny=player.y+Math.sin(ang)*22;let dmg=bulletDamage(),crit=false;if(Math.random()<critChance()){dmg*=2.15;crit=true}
+ bullets.push({x:nx,y:ny,vx:player.vx+Math.cos(ang)*bulletSpeed(),vy:player.vy+Math.sin(ang)*bulletSpeed(),life:1900,r:4,damage:dmg,crit});player.fireTimer=fireCooldown();state.shots++;
+ for(let i=0;i<4;i++)spawnParticle(nx,ny,{vx:Math.cos(ang)*rand(45,120)+rand(-20,20),vy:Math.sin(ang)*rand(45,120)+rand(-20,20),color:crit?'#fff07c':'#9bf7ff',size:rand(1,2.2),life:rand(80,180),glow:10});beep(520,.03,'square',.017,170)
 }
 
-
-/* =========================================================
-   GEMİ HAREKETİ
-========================================================= */
-
-function moveShip(){
-
-    ship.x+=
-        joy.x*
-        engineSpeed();
-
-    ship.y+=
-        joy.y*
-        engineSpeed();
-
-
-    if(
-        Math.abs(joy.x)+
-        Math.abs(joy.y)
-        >.1
-    ){
-
-        ship.angle=
-            Math.atan2(
-                joy.y,
-                joy.x
-            );
-
-    }
-
+function updateBullets(dt){
+ for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.life-=dt;if(b.life<=0){bullets.splice(i,1);continue}b.x+=b.vx*dt/1000;b.y+=b.vy*dt/1000;if(Math.hypot(b.x-player.x,b.y-player.y)>2900){bullets.splice(i,1);continue}let hit=false;
+  for(const a of asteroids){if(a.dead)continue;if(Math.hypot(b.x-a.x,b.y-a.y)<a.radius+b.r){a.hp-=b.damage;a.flash=100;burst(b.x,b.y,'#d7e0e8',4,65);hit=true;if(a.hp<=0)destroyAsteroid(a);break}}
+  if(hit){bullets.splice(i,1);continue}
+  for(const e of enemies){if(e.dead)continue;if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+b.r){e.hp-=b.damage;e.flash=100;burst(b.x,b.y,b.crit?'#fff07c':'#ff7188',5,85);if(e.hp<=0)destroyEnemy(e);hit=true;break}}
+  if(hit)bullets.splice(i,1);
+ }
+}
+function updateEnemyBullets(dt){for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.life-=dt;if(b.life<=0){enemyBullets.splice(i,1);continue}b.x+=b.vx*dt/1000;b.y+=b.vy*dt/1000;if(Math.hypot(b.x-player.x,b.y-player.y)<player.radius+b.r){damagePlayer(b.damage);enemyBullets.splice(i,1);continue}if(Math.hypot(b.x-player.x,b.y-player.y)>3100)enemyBullets.splice(i,1)}}
+function updateEnemies(dt){
+ state.enemyTimer+=dt/1000;
+ if(enemies.length===0&&state.enemyTimer>=state.nextEnemy&&!state.dead){state.enemyTimer=0;state.nextEnemy=13+Math.random()*20;if(Math.random()<.5)spawnEnemy()}
+ for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];if(e.dead||Math.hypot(e.x-player.x,e.y-player.y)>3000){enemies.splice(i,1);continue}e.flash=Math.max(0,e.flash-dt);const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy),ang=Math.atan2(dy,dx);e.angle=ang;let t=d>700?1:d<380?-0.7:.12;e.vx+=Math.cos(ang)*.072*t*dt;e.vy+=Math.sin(ang)*.072*t*dt;const sp=Math.hypot(e.vx,e.vy);if(sp>270){e.vx*=270/sp;e.vy*=270/sp}e.vx*=Math.pow(.9985,dt);e.vy*=Math.pow(.9985,dt);e.x+=e.vx*dt/1000;e.y+=e.vy*dt/1000;e.cool-=dt;if(d<860&&e.cool<=0){const tx=player.x+player.vx*.35,ty=player.y+player.vy*.35,a2=Math.atan2(ty-e.y,tx-e.x),s=230;enemyBullets.push({x:e.x+Math.cos(a2)*22,y:e.y+Math.sin(a2)*22,vx:e.vx+Math.cos(a2)*s,vy:e.vy+Math.sin(a2)*s,life:2900,r:5,damage:8});e.cool=1200+Math.random()*600;beep(180,.04,'square',.01,-60)}if(d<player.radius+e.r+4)damagePlayer(14)}
 }
 
-
-/* =========================================================
-   GÜNCELLEME
-========================================================= */
-
-function update(){
-
-    moveShip();
-
-    updateCamera();
-
-
-    if(ship.fireTimer>0)
-        ship.fireTimer--;
-
-    if(ship.invincible>0)
-        ship.invincible--;
-
-
-    if(firing)
-        shoot();
-
-
-    /* -------------------------
-       MERMİLER
-    ------------------------- */
-
-    bullets.forEach(b=>{
-
-        b.x+=b.vx;
-        b.y+=b.vy;
-
-        b.life--;
-
-    });
-
-    bullets=
-        bullets.filter(
-            b=>b.life>0
-        );
-
-
-    /* -------------------------
-       ASTEROİTLER
-    ------------------------- */
-
-    asteroids.forEach(a=>{
-
-        a.x+=a.vx;
-        a.y+=a.vy;
-
-        a.rot+=a.spin;
-
-    });
-
-
-    /* -------------------------
-       DÜŞMANLAR
-    ------------------------- */
-
-    enemies.forEach(e=>{
-
-        /*
-            Düşman oyuncuya doğru hafifçe yönelir.
-        */
-
-        const dx=ship.x-e.x;
-        const dy=ship.y-e.y;
-
-        const d=Math.hypot(dx,dy);
-
-        if(d>0){
-
-            e.vx+=
-                (dx/d)*.003;
-
-            e.vy+=
-                (dy/d)*.003;
-
-        }
-
-        e.vx*=.995;
-        e.vy*=.995;
-
-        e.x+=e.vx;
-        e.y+=e.vy;
-
-
-        if(d<450){
-
-            e.fire-=1/60;
-
-            if(e.fire<=0){
-
-                const angle=
-                    Math.atan2(
-                        ship.y-e.y,
-                        ship.x-e.x
-                    );
-
-                enemyBullets.push({
-
-                    x:e.x,
-                    y:e.y,
-
-                    vx:
-                        Math.cos(angle)*3,
-
-                    vy:
-                        Math.sin(angle)*3,
-
-                    life:220
-
-                });
-
-                e.fire=rand(
-                    2.5,
-                    4
-                );
-
-            }
-
-        }
-
-    });
-
-
-    /* -------------------------
-       DÜŞMAN MERMİLERİ
-    ------------------------- */
-
-    enemyBullets.forEach(b=>{
-
-        b.x+=b.vx;
-        b.y+=b.vy;
-
-        b.life--;
-
-    });
-
-    enemyBullets=
-        enemyBullets.filter(
-            b=>b.life>0
-        );
-
-
-    /* =====================================================
-       MERMİ -> ASTEROİT
-    ===================================================== */
-
-    for(
-        let i=bullets.length-1;
-        i>=0;
-        i--
-    ){
-
-        const b=bullets[i];
-
-        for(
-            let j=asteroids.length-1;
-            j>=0;
-            j--
-        ){
-
-            const a=asteroids[j];
-
-            if(
-                dist(b,a)
-                <
-                a.r+b.r
-            ){
-
-                a.hp-=b.damage;
-
-                bullets.splice(i,1);
-
-                addParticle(
-                    b.x,
-                    b.y,
-                    "#ffc857",
-                    7
-                );
-
-
-                if(a.hp<=0){
-
-                    /*
-                        ARTIK KAYNAK DİREKT
-                        ENVANTERE GİRMİYOR.
-
-                        Önce uzaya pickup bırakıyoruz.
-                    */
-
-                    dropResources(a);
-
-                    addParticle(
-                        a.x,
-                        a.y,
-                        "#65eaff",
-                        25
-                    );
-
-                    shake=4;
-
-                    asteroids.splice(
-                        j,
-                        1
-                    );
-
-                }
-
-                break;
-
-            }
-
-        }
-
-    }
-
-
-    /* =====================================================
-       MERMİ -> DÜŞMAN
-    ===================================================== */
-
-    for(
-        let i=bullets.length-1;
-        i>=0;
-        i--
-    ){
-
-        const b=bullets[i];
-
-        for(
-            let j=enemies.length-1;
-            j>=0;
-            j--
-        ){
-
-            const e=enemies[j];
-
-            if(
-                dist(b,e)
-                <
-                e.r+b.r
-            ){
-
-                e.hp-=b.damage;
-
-                bullets.splice(i,1);
-
-                addParticle(
-                    b.x,
-                    b.y,
-                    "#ff526e",
-                    8
-                );
-
-
-                if(e.hp<=0){
-
-                    /*
-                        Düşmandan da kaynak düşebilir.
-                    */
-
-                    dropEnemyResources(e);
-
-                    addParticle(
-                        e.x,
-                        e.y,
-                        "#ff4161",
-                        30
-                    );
-
-                    shake=10;
-
-                    enemies.splice(
-                        j,
-                        1
-                    );
-
-                    showMessage(
-                        "👾 DÜŞMAN YOK EDİLDİ"
-                    );
-
-                }
-
-                break;
-
-            }
-
-        }
-
-    }
-
-
-    /* =====================================================
-       ASTEROİT -> GEMİ
-    ===================================================== */
-
-    asteroids.forEach(a=>{
-
-        if(
-            dist(a,ship)
-            <
-            a.r+ship.r
-        ){
-
-            hurt(6);
-
-            const angle=
-                Math.atan2(
-                    ship.y-a.y,
-                    ship.x-a.x
-                );
-
-            ship.x+=
-                Math.cos(angle)*2;
-
-            ship.y+=
-                Math.sin(angle)*2;
-
-        }
-
-    });
-
-
-    /* =====================================================
-       DÜŞMAN -> GEMİ
-    ===================================================== */
-
-    enemies.forEach(e=>{
-
-        if(
-            dist(e,ship)
-            <
-            e.r+ship.r
-        ){
-
-            hurt(12);
-
-        }
-
-    });
-
-
-    /* =====================================================
-       DÜŞMAN MERMİSİ -> GEMİ
-    ===================================================== */
-
-    for(
-        let i=enemyBullets.length-1;
-        i>=0;
-        i--
-    ){
-
-        const b=enemyBullets[i];
-
-        if(
-            Math.hypot(
-                b.x-ship.x,
-                b.y-ship.y
-            )
-            <
-            ship.r+7
-        ){
-
-            hurt(8);
-
-            enemyBullets.splice(
-                i,
-                1
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       PICKUP TOPLAMA
-    ===================================================== */
-
-    updatePickups();
-
-
-    /* =====================================================
-       PARÇACIKLAR
-    ===================================================== */
-
-    particles.forEach(p=>{
-
-        p.x+=p.vx;
-        p.y+=p.vy;
-
-        p.vx*=.97;
-        p.vy*=.97;
-
-        p.life--;
-
-    });
-
-    particles=
-        particles.filter(
-            p=>p.life>0
-        );
-
-
-    /* =====================================================
-       YENİ ASTEROİT ÜRET
-    ===================================================== */
-
-    if(
-        asteroids.length<14
-    ){
-
-        spawnAsteroid();
-
-    }
-
-
-    updateUI();
-
+function updateAsteroids(dt){for(let i=asteroids.length-1;i>=0;i--){const a=asteroids[i];a.rot+=a.spin*dt;a.flash=Math.max(0,a.flash-dt);if(a.dead||Math.hypot(a.x-player.x,a.y-player.y)>2600)asteroids.splice(i,1)}ensureAsteroids()}
+function updatePickups(dt){for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];p.life-=dt;p.phase+=dt*.004;if(p.life<=0){pickups.splice(i,1);continue}p.vx*=Math.pow(.992,dt);p.vy*=Math.pow(.992,dt);const dx=player.x-p.x,dy=player.y-p.y,d=Math.hypot(dx,dy),range=magnetRange();if(d<range&&d>2){const force=(1-d/range)*(.15+upgrades.magnet*.055);p.vx+=dx/(d||1)*force*dt;p.vy+=dy/(d||1)*force*dt}p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000;if(d<player.radius+p.r){collectPickup(p,i)}}}
+function collectPickup(p,i){const room=Math.max(0,cargoCapacity()-cargoUsed());if(room<=0){showToast('📦 Kargo dolu — Kargo Ambari yükselt',1200);return}const amount=Math.min(p.value,room);resources[p.type]+=amount;state.pickups++;burst(p.x,p.y,resourceDefs[p.type].color,10,90);showToast(`${resourceDefs[p.type].icon} +${amount} ${resourceDefs[p.type].name}`,850);beep(p.type==='energy'?760:430,.06,'sine',.017,70);pickups.splice(i,1)}
+function damagePlayer(amount){if(state.dead||player.invuln>0)return;player.invuln=850;player.lastDamage=state.time;player.shieldDelay=3200;let rest=amount;if(player.shield>0){const absorbed=Math.min(player.shield,rest);player.shield-=absorbed;rest-=absorbed}if(rest>0)player.hp=Math.max(0,player.hp-rest);state.flash=180;state.shake=Math.max(state.shake,10);burst(player.x,player.y,'#ff6178',16,180);beep(90,.12,'sawtooth',.028,-35);if(player.hp<=0)killPlayer()}
+function killPlayer(){state.dead=true;state.paused=true;burst(player.x,player.y,'#b9f9ff',45,290);burst(player.x,player.y,'#ff4d6e',35,250);for(let i=0;i<7;i++){const a=Math.random()*Math.PI*2;pickups.push({x:player.x+Math.cos(a)*rand(10,45),y:player.y+Math.sin(a)*rand(10,45),vx:Math.cos(a)*rand(45,110),vy:Math.sin(a)*rand(45,110),r:10,type:['iron','copper','crystal','energy'][Math.floor(Math.random()*4)],value:1+Math.floor(Math.random()*3),life:30000,phase:Math.random()*Math.PI*2})}document.getElementById('deadText').textContent=`MINER-01 · Lv.${level()} · ${state.mined} asteroid · ${state.kills} düşman · ${state.pickups} pickup`;document.getElementById('dead').classList.add('show');saveGame(true)}
+function worldCollision(){for(const a of asteroids){if(a.dead)continue;const dx=player.x-a.x,dy=player.y-a.y,d=Math.hypot(dx,dy),min=player.radius+a.radius*.82;if(d<min){const nx=dx/(d||1),ny=dy/(d||1);player.x+=nx*(min-d);player.y+=ny*(min-d);const sp=Math.hypot(player.vx,player.vy);if(sp>80){damagePlayer(clamp(sp*.018,4,13));player.vx*=.73;player.vy*=.73}}}}
+
+function cost(key){const u=upDefs[key],lv=upgrades[key]+1,fac=Math.pow(1.4,lv-1),c={};for(const k in u.base)c[k]=Math.ceil(u.base[k]*fac);return c}
+function affordable(c){return Object.entries(c).every(([k,v])=>resources[k]>=v)}
+function buyUpgrade(key){const c=cost(key);if(!affordable(c))return;for(const k in c)resources[k]-=c[k];upgrades[key]++;if(key==='armor'){player.maxHp+=20;player.hp=Math.min(player.maxHp,player.hp+20)}if(key==='shield'){player.maxShield=shieldMax();player.shield=player.maxShield}renderUpgrades(currentTab);updateHUD();burst(player.x,player.y, key==='crit'?'#fff07c':'#6cefff',20,145);showToast(`⚙ ${upDefs[key].name} Lv.${upgrades[key]}`,1200);beep(880,.11,'triangle',.025,260);saveGame(true)}
+let currentTab='ship';
+function renderUpgrades(tab='ship'){currentTab=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));const grid=document.getElementById('upgradeGrid');grid.innerHTML='';for(const key of Object.keys(upDefs)){const u=upDefs[key];if(u.tab!==tab)continue;const lv=upgrades[key],c=cost(key),ok=affordable(c);const parts=Object.entries(c).map(([k,v])=>`<span class="cost ${resources[k]>=v?'':'no'}">${resourceDefs[k].icon} ${v}</span>`).join('');let effect='';if(key==='armor')effect=`HP: ${Math.round(player.maxHp)}`;if(key==='engine')effect=`İvme: ${accel().toFixed(3)}`;if(key==='regen')effect=`Regen: ${regenRate().toFixed(1)} HP/sn`;if(key==='shield')effect=`Kalkan: ${player.maxShield}`;if(key==='fireRate')effect=`Cooldown: ${Math.round(fireCooldown())} ms`;if(key==='bulletSpeed')effect=`Hız: ${Math.round(bulletSpeed())}`;if(key==='damage')effect=`Hasar: ${Math.round(bulletDamage())}`;if(key==='crit')effect=`Kritik: ${(critChance()*100).toFixed(1)}%`;if(key==='cargo')effect=`Kapasite: ${cargoCapacity()}`;if(key==='magnet')effect=`Menzil: ${Math.round(magnetRange())}`;if(key==='scanner')effect=`Nadir çarpanı: ${rarityMultiplier().toFixed(2)}x`;if(key==='yield')effect=`Verim: ${yieldMultiplier().toFixed(2)}x`;const div=document.createElement('div');div.className='upCard';div.innerHTML=`<div class="upTop"><div class="upName">${u.icon} ${u.name}</div><div class="upLv">Lv.${lv}</div></div><div class="upDesc">${u.desc}<br><b style="color:#c8f9ff">${effect}</b></div><div class="costs">${parts}</div><button class="upBtn" ${ok?'':'disabled'}>ÜRET · Lv.${lv+1}</button>`;div.querySelector('button').onclick=()=>buyUpgrade(key);grid.appendChild(div)}}
+
+function serialize(){return JSON.stringify({version:3,savedAt:Date.now(),player:{x:player.x,y:player.y,vx:player.vx,vy:player.vy,hp:player.hp,maxHp:player.maxHp},resources,upgrades,stats:{kills:state.kills,mined:state.mined,pickups:state.pickups,shots:state.shots}})}
+function saveGame(silent=false){try{localStorage.setItem(SAVE_KEY,serialize());document.getElementById('saveState').textContent='KAYITLI';state.saveTime=0;if(!silent)showToast('💾 Oyun kaydedildi',900)}catch(e){showToast('⚠ Kayıt başarısız',1200)}}
+function hasSave(){try{return !!localStorage.getItem(SAVE_KEY)}catch(e){return false}}
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;const d=JSON.parse(raw);Object.assign(player,d.player||{});for(const k in resources)resources[k]=Number(d.resources?.[k]||0);for(const k in upgrades)upgrades[k]=Number(d.upgrades?.[k]||0);Object.assign(state,d.stats?{kills:Number(d.stats.kills||0),mined:Number(d.stats.mined||0),pickups:Number(d.stats.pickups||0),shots:Number(d.stats.shots||0)}:{});player.maxShield=shieldMax();player.shield=Math.min(player.maxShield,Number(d.player?.shield||player.maxShield));camera.x=player.x;camera.y=player.y;state.dead=false;state.paused=false;state.saveTime=0;asteroids.length=0;bullets.length=0;enemyBullets.length=0;enemies.length=0;pickups.length=0;particles.length=0;ensureAsteroids();state.running=true;document.getElementById('dead').classList.remove('show');updateHUD();showToast('📂 Kayıt yüklendi',1000);return true}catch(e){showToast('⚠ Kayıt bozuk',1300);return false}}
+function newGame(){state.running=true;state.dead=false;state.paused=false;state.time=0;state.saveTime=0;state.kills=0;state.mined=0;state.pickups=0;state.shots=0;state.enemyTimer=0;state.nextEnemy=15;player.x=0;player.y=0;player.vx=0;player.vy=0;player.angle=0;player.maxHp=60;player.hp=60;player.maxShield=0;player.shield=0;for(const k in resources)resources[k]=0;for(const k in upgrades)upgrades[k]=0;asteroids.length=0;bullets.length=0;enemyBullets.length=0;enemies.length=0;pickups.length=0;particles.length=0;camera.x=0;camera.y=0;ensureAsteroids();updateHUD()}
+
+function exportSave(){const blob=new Blob([serialize()],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='miner01-save.json';a.click();URL.revokeObjectURL(url);showToast('📤 Kayıt dışa aktarıldı',1000)}
+function importSave(){const inp=document.createElement('input');inp.type='file';inp.accept='application/json,.json';inp.onchange=()=>{const f=inp.files?.[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{JSON.parse(rd.result);localStorage.setItem(SAVE_KEY,rd.result);loadGame();showToast('📥 Kayıt içe aktarıldı',1000)}catch(e){showToast('⚠ Geçersiz kayıt dosyası',1300)}};rd.readAsText(f)};inp.click()}
+function resetSave(){if(confirm('Yerel kayıt tamamen silinsin mi?')){try{localStorage.removeItem(SAVE_KEY)}catch(e){}document.getElementById('saveState').textContent='KAYIT YOK';showToast('🗑 Kayıt silindi',1000)}}
+
+function updateHUD(){
+ const hud=document.getElementById('resourceHud');hud.innerHTML='';for(const k of Object.keys(resourceDefs)){const d=resourceDefs[k],s=document.createElement('div');s.className='res '+k;s.textContent=`${d.icon} ${resources[k]}`;hud.appendChild(s)}document.getElementById('shipTitle').textContent=`🚀 MINER-01 — Lv.${level()}`;document.getElementById('hpText').textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)} HP`;document.getElementById('hpFill').style.width=(player.hp/player.maxHp*100).toFixed(1)+'%';document.getElementById('shieldText').textContent=`${Math.ceil(player.shield)} / ${Math.ceil(player.maxShield)}`;document.getElementById('shieldFill').style.width=(player.maxShield?player.shield/player.maxShield*100:0)+'%';const sp=Math.hypot(player.vx,player.vy);let s='Motor beklemede · Atalet korunuyor';if(thrustAmount()>.01)s=`İtki aktif · ${Math.round(sp)} px/sn`;else if(input.pcLeft||input.mobileFire)s=`Ateş aktif · ${Math.round(sp)} px/sn`;else if(sp>25)s=`Süzülüyor · ${Math.round(sp)} px/sn`;else if(regenRate()>0&&state.time-player.lastDamage>3200&&player.hp<player.maxHp)s=`Can yenileniyor · +${regenRate().toFixed(1)} HP/sn`;document.getElementById('status').textContent=`${s} · Kargo ${cargoUsed()}/${cargoCapacity()}`
 }
 
+function drawBackground(){ctx.fillStyle='#030713';ctx.fillRect(0,0,W,H);const gx=(((-camera.x*.22)%180)+180)%180,gy=(((-camera.y*.22)%180)+180)%180;ctx.strokeStyle='rgba(65,122,152,.08)';ctx.lineWidth=1;ctx.beginPath();for(let x=gx;x<W;x+=180){ctx.moveTo(x,0);ctx.lineTo(x,H)}for(let y=gy;y<H;y+=180){ctx.moveTo(0,y);ctx.lineTo(W,y)}ctx.stroke();for(const s of stars){const x=((s.x*W-camera.x*s.d*.02)%W+W)%W,y=((s.y*H-camera.y*s.d*.02)%H+H)%H;ctx.globalAlpha=s.a;ctx.fillStyle='#c9f5ff';ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+function drawAsteroid(a){const s=worldScreen(a.x,a.y);if(s.x<-100||s.x>W+100||s.y<-100||s.y>H+100)return;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a.rot);ctx.beginPath();for(let i=0;i<a.verts.length;i++){const v=a.verts[i],x=Math.cos(v.a)*v.r,y=Math.sin(v.a)*v.r;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fillStyle=a.flash>0?'#aab5be':a.type==='crystal'?'#6d4b79':a.type==='energy'?'#6c633c':a.type==='titanium'?'#6e7587':a.type==='uranium'?'#3c7254':'#625e59';ctx.strokeStyle='rgba(195,201,209,.55)';ctx.lineWidth=1.2;ctx.fill();ctx.stroke();for(let i=0;i<Math.max(2,Math.floor(a.radius/15));i++){const aa=i*2.13,cx=Math.cos(aa)*a.radius*.4,cy=Math.sin(aa)*a.radius*.35;ctx.fillStyle='rgba(24,28,33,.3)';ctx.beginPath();ctx.arc(cx,cy,a.radius*.09,0,Math.PI*2);ctx.fill()}ctx.restore()}
+function drawPickup(p){const s=worldScreen(p.x,p.y);if(s.x<-30||s.x>W+30||s.y<-30||s.y>H+30)return;const c=resourceDefs[p.type].color;ctx.save();ctx.translate(s.x,s.y+Math.sin(p.phase)*2);ctx.rotate(p.phase*.6);ctx.shadowBlur=13;ctx.shadowColor=c;ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,-p.r);ctx.lineTo(p.r,0);ctx.lineTo(0,p.r);ctx.lineTo(-p.r,0);ctx.closePath();ctx.fill();ctx.restore()}
+function drawBullet(b){const s=worldScreen(b.x,b.y);if(s.x<-30||s.x>W+30||s.y<-30||s.y>H+30)return;const a=Math.atan2(b.vy,b.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.shadowBlur=12;ctx.shadowColor=b.crit?'#fff07c':'#7fefff';ctx.strokeStyle=b.crit?'#fff5a8':'#b7fbff';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(10,0);ctx.stroke();ctx.restore()}
+function drawEnemyBullet(b){const s=worldScreen(b.x,b.y);if(s.x<-30||s.x>W+30||s.y<-30||s.y>H+30)return;const a=Math.atan2(b.vy,b.vx);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(a);ctx.shadowBlur=11;ctx.shadowColor='#ff5570';ctx.strokeStyle='#ffbac3';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(10,0);ctx.stroke();ctx.restore()}
+function drawEnemy(e){const s=worldScreen(e.x,e.y);if(s.x<-50||s.x>W+50||s.y<-50||s.y>H+50)return;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(e.angle);ctx.shadowBlur=14;ctx.shadowColor='rgba(255,70,95,.3)';ctx.beginPath();ctx.moveTo(22,0);ctx.lineTo(-10,-13);ctx.lineTo(-7,0);ctx.lineTo(-10,13);ctx.closePath();ctx.fillStyle=e.flash>0?'#ff99a8':'#a52e46';ctx.strokeStyle='#ff8398';ctx.lineWidth=1.5;ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#2a0c17';ctx.beginPath();ctx.ellipse(5,0,6,4,0,0,Math.PI*2);ctx.fill();ctx.rotate(-e.angle);ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(-20,-28,40,4);ctx.fillStyle='#ff5c75';ctx.fillRect(-20,-28,40*clamp(e.hp/e.maxHp,0,1),4);ctx.restore()}
+function drawPlayer(){const s=worldScreen(player.x,player.y);if(player.invuln>0&&Math.floor(player.invuln/90)%2===0)return;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(player.angle);const t=thrustAmount();if(t>.01){ctx.fillStyle='#55eaff';ctx.shadowBlur=15;ctx.shadowColor='#00cfff';ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-27-rand(0,9)*t,7);ctx.lineTo(-22,0);ctx.lineTo(-27-rand(0,9)*t,-7);ctx.closePath();ctx.fill();ctx.shadowBlur=0}ctx.shadowBlur=18;ctx.shadowColor='rgba(85,234,255,.34)';ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(-11,-12);ctx.lineTo(-5,0);ctx.lineTo(-11,12);ctx.closePath();ctx.fillStyle='#2eaec8';ctx.strokeStyle='#b3fbff';ctx.lineWidth=1.5;ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#082938';ctx.strokeStyle='#7fefff';ctx.beginPath();ctx.ellipse(5,0,7,4.5,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#11647b';ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(-13,-16);ctx.lineTo(-19,-12);ctx.lineTo(-9,0);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(-13,16);ctx.lineTo(-19,12);ctx.lineTo(-9,0);ctx.closePath();ctx.fill();ctx.restore()}
+function drawParticles(){for(const p of particles){const s=worldScreen(p.x,p.y),a=clamp(p.life/p.maxLife,0,1);ctx.globalAlpha=a;if(p.glow){ctx.shadowBlur=p.glow;ctx.shadowColor=p.color}ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(s.x,s.y,p.size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0}ctx.globalAlpha=1}
+function drawRadar(){const cw=170,ch=110;mctx.clearRect(0,0,340,220);mctx.fillStyle='rgba(3,10,20,.75)';mctx.fillRect(0,0,340,220);mctx.strokeStyle='rgba(85,234,255,.11)';mctx.lineWidth=1;for(let x=42;x<340;x+=42){mctx.beginPath();mctx.moveTo(x,0);mctx.lineTo(x,220);mctx.stroke()}for(let y=44;y<220;y+=44){mctx.beginPath();mctx.moveTo(0,y);mctx.lineTo(340,y);mctx.stroke()}const scale=0.14*(1+upgrades.scanner*.08);for(const a of asteroids){const x=170+(a.x-player.x)*scale,y=110+(a.y-player.y)*scale;if(x>0&&x<340&&y>0&&y<220){mctx.fillStyle=a.type==='uranium'?'#89ffb8':a.type==='titanium'?'#d4ddff':a.type==='crystal'?'#d59cff':'#657687';mctx.fillRect(x-1.5,y-1.5,3,3)}}for(const e of enemies){const x=170+(e.x-player.x)*scale,y=110+(e.y-player.y)*scale;if(x>0&&x<340&&y>0&&y<220){mctx.fillStyle='#ff5870';mctx.beginPath();mctx.arc(x,y,4,0,Math.PI*2);mctx.fill()}}mctx.fillStyle='#8af5ff';mctx.beginPath();mctx.moveTo(170,104);mctx.lineTo(177,116);mctx.lineTo(163,116);mctx.closePath();mctx.fill()}
+function render(){drawBackground();let q=state.shake;if(q>0){ctx.save();ctx.translate(rand(-q,q),rand(-q,q))}for(const a of asteroids)drawAsteroid(a);for(const p of pickups)drawPickup(p);for(const b of bullets)drawBullet(b);for(const b of enemyBullets)drawEnemyBullet(b);for(const e of enemies)drawEnemy(e);drawPlayer();drawParticles();if(q>0)ctx.restore();const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.2,W/2,H/2,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.3)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);if(state.flash>0){ctx.fillStyle=`rgba(255,30,60,${state.flash/180*.13})`;ctx.fillRect(0,0,W,H)}drawRadar();state.shake*=.9;if(state.shake<.15)state.shake=0}
 
-/* =========================================================
-   KAYNAK DROP SİSTEMİ
-========================================================= */
-
-function dropResources(a){
-
-    const roll=Math.random();
-
-    let type;
-    let amount;
-
-
-    if(roll<.55){
-
-        type="iron";
-        amount=randInt(1,4);
-
-    }
-    else if(roll<.87){
-
-        type="crystal";
-        amount=randInt(1,2);
-
-    }
-    else{
-
-        type="energy";
-        amount=randInt(1,3);
-
-    }
-
-
-    /*
-        Pickup asteroitin bulunduğu yerde oluşur.
-        Biraz fiziksel hareket veriyoruz.
-    */
-
-    pickups.push({
-
-        x:a.x,
-        y:a.y,
-
-        vx:rand(-.5,.5),
-        vy:rand(-.5,.5),
-
-        type,
-        amount,
-
-        r:10,
-
-        life:999999
-
-    });
-
+function update(dt){
+ if(state.running&&!state.paused){state.time+=dt;updatePlayer(dt);updateBullets(dt);updateEnemyBullets(dt);updateEnemies(dt);updateAsteroids(dt);updatePickups(dt);worldCollision();updateParticles(dt);state.saveTime+=dt;if(state.saveTime>10000){saveGame(true);state.saveTime=0}}
+ if(state.toast>0){state.toast-=dt;if(state.toast<=0)document.getElementById('toast').classList.remove('show')}
+ if(state.warning>0){state.warning-=dt;if(state.warning<=0)document.getElementById('warning').classList.remove('show')}
+ updateHUD();
 }
-
-
-/*
-    Düşmandan daha değerli kaynak düşür.
-*/
-
-function dropEnemyResources(e){
-
-    pickups.push({
-
-        x:e.x,
-        y:e.y,
-
-        vx:rand(-1,1),
-        vy:rand(-1,1),
-
-        type:"energy",
-        amount:randInt(2,5),
-
-        r:11,
-
-        life:999999
-
-    });
-
-
-    if(Math.random()<.7){
-
-        pickups.push({
-
-            x:e.x+rand(-15,15),
-            y:e.y+rand(-15,15),
-
-            vx:rand(-.7,.7),
-            vy:rand(-.7,.7),
-
-            type:"crystal",
-            amount:randInt(1,3),
-
-            r:10,
-
-            life:999999
-
-        });
-
-    }
-
-}
-
-
-/* =========================================================
-   PICKUP GÜNCELLEME
-========================================================= */
-
-function updatePickups(){
-
-    let nearby=false;
-
-
-    pickups.forEach(p=>{
-
-        p.x+=p.vx;
-        p.y+=p.vy;
-
-        p.vx*=.96;
-        p.vy*=.96;
-
-
-        const d=dist(
-            p,
-            ship
-        );
-
-
-        /*
-            Kaynağa yaklaşırsak hafif çekim.
-        */
-
-        if(d<100 && d>5){
-
-            p.vx+=
-                (ship.x-p.x)
-                /d*.025;
-
-            p.vy+=
-                (ship.y-p.y)
-                /d*.025;
-
-        }
-
-
-        /*
-            GEMİ KAYNAĞIN ÜZERİNDEN GEÇİNCE TOPLA
-        */
-
-        if(d<p.r+ship.r){
-
-            collectPickup(p);
-
-            p.collected=true;
-
-        }
-
-
-        if(d<100){
-
-            nearby=true;
-
-        }
-
-    });
-
-
-    pickups=
-        pickups.filter(
-            p=>!p.collected
-        );
-
-
-    document.getElementById(
-        "pickupHint"
-    ).style.opacity=
-        nearby ? 1 : 0;
-
-}
-
-
-/* =========================================================
-   PICKUP TOPLA
-========================================================= */
-
-function collectPickup(p){
-
-    if(p.type==="iron"){
-
-        state.iron+=p.amount;
-
-        showMessage(
-            `🔩 +${p.amount} Demir`
-        );
-
-    }
-
-
-    if(p.type==="crystal"){
-
-        state.crystal+=p.amount;
-
-        showMessage(
-            `💎 +${p.amount} Kristal`
-        );
-
-    }
-
-
-    if(p.type==="energy"){
-
-        state.energy+=p.amount;
-
-        showMessage(
-            `⚡ +${p.amount} Enerji`
-        );
-
-    }
-
-
-    addParticle(
-        p.x,
-        p.y,
-        pickupColor(p.type),
-        15
-    );
-
-}
-
-
-function pickupColor(type){
-
-    if(type==="iron")
-        return "#c8c8c8";
-
-    if(type==="crystal")
-        return "#b96cff";
-
-    return "#ffe45e";
-
-}
-
-
-/* =========================================================
-   HASAR
-========================================================= */
-
-function hurt(amount){
-
-    if(ship.invincible>0)
-        return;
-
-    ship.hp-=amount;
-
-    ship.invincible=50;
-
-    shake=8;
-
-    addParticle(
-        ship.x,
-        ship.y,
-        "#ff385b",
-        15
-    );
-
-
-    if(ship.hp<=0){
-
-        ship.hp=0;
-
-        document.getElementById(
-            "gameOver"
-        ).style.display="flex";
-
-    }
-
-}
-
-
-/* =========================================================
-   ÇİZİM
-========================================================= */
-
-function draw(){
-
-    ctx.save();
-
-
-    if(shake>0){
-
-        ctx.translate(
-            rand(-shake,shake),
-            rand(-shake,shake)
-        );
-
-        shake*=.85;
-
-        if(shake<.3)
-            shake=0;
-
-    }
-
-
-    /*
-        ARKA PLAN
-    */
-
-    ctx.fillStyle="#02040d";
-
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
-
-
-    /*
-        YILDIZLAR
-    */
-
-    stars.forEach(s=>{
-
-        const x=screenX(s.x);
-        const y=screenY(s.y);
-
-
-        /*
-            Kamera hareket ettikçe
-            yıldızlar dünyayla birlikte akar.
-        */
-
-        if(
-            x>-10 &&
-            x<W+10 &&
-            y>-10 &&
-            y<H+10
-        ){
-
-            ctx.globalAlpha=
-                .3+s.a*.7;
-
-            ctx.fillStyle="#fff";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x,
-                y,
-                s.r,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
-
-        }
-
-    });
-
-
-    ctx.globalAlpha=1;
-
-
-    /*
-        UZAK YILDIZLAR
-        Sonsuzluk hissi için procedural grid.
-    */
-
-    drawSpaceGrid();
-
-
-    /*
-        ASTEROİTLER
-    */
-
-    asteroids.forEach(
-        drawAsteroid
-    );
-
-
-    /*
-        PICKUP'LAR
-    */
-
-    pickups.forEach(
-        drawPickup
-    );
-
-
-    /*
-        DÜŞMANLAR
-    */
-
-    enemies.forEach(
-        drawEnemy
-    );
-
-
-    /*
-        MERMİLER
-    */
-
-    bullets.forEach(b=>{
-
-        const x=screenX(b.x);
-        const y=screenY(b.y);
-
-        ctx.fillStyle="#a9f3ff";
-
-        ctx.shadowBlur=12;
-        ctx.shadowColor="#4bdcff";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            b.r,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
-
-        ctx.shadowBlur=0;
-
-    });
-
-
-    /*
-        DÜŞMAN MERMİLERİ
-    */
-
-    enemyBullets.forEach(b=>{
-
-        const x=screenX(b.x);
-        const y=screenY(b.y);
-
-        ctx.fillStyle="#ff4d62";
-
-        ctx.shadowBlur=10;
-        ctx.shadowColor="#ff203f";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            5,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
-
-        ctx.shadowBlur=0;
-
-    });
-
-
-    /*
-        GEMİ
-    */
-
-    drawShip();
-
-
-    /*
-        PARÇACIKLAR
-    */
-
-    particles.forEach(p=>{
-
-        const x=screenX(p.x);
-        const y=screenY(p.y);
-
-        ctx.globalAlpha=
-            Math.max(
-                0,
-                p.life/p.max
-            );
-
-        ctx.fillStyle=p.color;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            Math.max(
-                1,
-                p.life/10
-            ),
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
-
-    });
-
-
-    ctx.globalAlpha=1;
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   UZAY GRID
-========================================================= */
-
-function drawSpaceGrid(){
-
-    /*
-        Büyük, çok hafif grid.
-        Dünya koordinatına bağlı olduğu için
-        kamera hareketinde uzay hissi verir.
-    */
-
-    const grid=250;
-
-    const startX=
-        Math.floor(
-            (camera.x-W/2)/grid
-        )*grid;
-
-    const startY=
-        Math.floor(
-            (camera.y-H/2)/grid
-        )*grid;
-
-
-    ctx.strokeStyle=
-        "rgba(50,100,170,.055)";
-
-    ctx.lineWidth=1;
-
-
-    for(
-        let wx=startX;
-        wx<camera.x+W/2+grid;
-        wx+=grid
-    ){
-
-        const x=screenX(wx);
-
-        ctx.beginPath();
-
-        ctx.moveTo(x,0);
-        ctx.lineTo(x,H);
-
-        ctx.stroke();
-
-    }
-
-
-    for(
-        let wy=startY;
-        wy<camera.y+H/2+grid;
-        wy+=grid
-    ){
-
-        const y=screenY(wy);
-
-        ctx.beginPath();
-
-        ctx.moveTo(0,y);
-        ctx.lineTo(W,y);
-
-        ctx.stroke();
-
-    }
-
-}
-
-
-/* =========================================================
-   GEMİ
-========================================================= */
-
-function drawShip(){
-
-    ctx.save();
-
-    /*
-        Geminin ekran pozisyonu
-        kamera nedeniyle artık sabit değil,
-        ancak kamera onu takip ettiği için
-        merkezde kalmaya çalışır.
-    */
-
-    const x=screenX(ship.x);
-    const y=screenY(ship.y);
-
-    ctx.translate(
-        x,
-        y
-    );
-
-    ctx.rotate(
-        ship.angle
-    );
-
-
-    if(
-        ship.invincible%6<3
-    ){
-
-        ctx.globalAlpha=.55;
-
-    }
-
-
-    /*
-        MOTOR
-    */
-
-    ctx.fillStyle="#31d9ff";
-
-    ctx.shadowBlur=20;
-    ctx.shadowColor="#00cfff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(-15,0);
-
-    ctx.lineTo(-30,7);
-
-    ctx.lineTo(-25,0);
-
-    ctx.lineTo(-30,-7);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.shadowBlur=0;
-
-
-    /*
-        GEMİ
-    */
-
-    const grad=
-        ctx.createLinearGradient(
-            -20,
-            0,
-            20,
-            0
-        );
-
-    grad.addColorStop(
-        0,
-        "#254f8a"
-    );
-
-    grad.addColorStop(
-        1,
-        "#a4ecff"
-    );
-
-    ctx.fillStyle=grad;
-
-    ctx.strokeStyle="#d8f7ff";
-
-    ctx.lineWidth=2;
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(24,0);
-
-    ctx.lineTo(-12,-13);
-
-    ctx.lineTo(-7,0);
-
-    ctx.lineTo(-12,13);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.stroke();
-
-
-    /*
-        KOKPİT
-    */
-
-    ctx.fillStyle="#172c62";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        5,
-        0,
-        6,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   ASTEROİT
-========================================================= */
-
-function drawAsteroid(a){
-
-    const x=screenX(a.x);
-    const y=screenY(a.y);
-
-
-    /*
-        Ekranın çok uzağındaysa çizme.
-    */
-
-    if(
-        x<-100 ||
-        x>W+100 ||
-        y<-100 ||
-        y>H+100
-    )
-        return;
-
-
-    ctx.save();
-
-    ctx.translate(
-        x,
-        y
-    );
-
-    ctx.rotate(
-        a.rot
-    );
-
-
-    const n=8;
-
-    ctx.fillStyle="#665a55";
-
-    ctx.strokeStyle="#9c887e";
-
-    ctx.lineWidth=2;
-
-
-    ctx.beginPath();
-
-
-    for(let i=0;i<n;i++){
-
-        const ang=
-            i*Math.PI*2/n;
-
-        /*
-            Her frame random yapmıyoruz.
-            Görüntünün titrememesi için
-            deterministik şekil.
-        */
-
-        const variations=[
-            .88,
-            1.05,
-            .82,
-            1.12,
-            .93,
-            1.04,
-            .8,
-            1.08
-        ];
-
-        const rr=
-            a.r*
-            variations[i];
-
-        const px=
-            Math.cos(ang)*rr;
-
-        const py=
-            Math.sin(ang)*rr;
-
-
-        if(i===0)
-            ctx.moveTo(px,py);
-        else
-            ctx.lineTo(px,py);
-
-    }
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.stroke();
-
-
-    /*
-        Kraterler
-    */
-
-    ctx.fillStyle=
-        "rgba(30,20,20,.35)";
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        -a.r*.25,
-        -a.r*.15,
-        a.r*.18,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        a.r*.3,
-        a.r*.25,
-        a.r*.13,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   PICKUP ÇİZİMİ
-========================================================= */
-
-function drawPickup(p){
-
-    const x=screenX(p.x);
-    const y=screenY(p.y);
-
-
-    if(
-        x<-40 ||
-        x>W+40 ||
-        y<-40 ||
-        y>H+40
-    )
-        return;
-
-
-    const color=
-        pickupColor(
-            p.type
-        );
-
-
-    /*
-        Glow
-    */
-
-    ctx.save();
-
-    ctx.translate(
-        x,
-        y
-    );
-
-    ctx.rotate(
-        performance.now()/900
-    );
-
-
-    ctx.shadowBlur=18;
-    ctx.shadowColor=color;
-
-    ctx.fillStyle=color;
-
-
-    /*
-        Elmas şekli
-    */
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        0,
-        -p.r
-    );
-
-    ctx.lineTo(
-        p.r,
-        0
-    );
-
-    ctx.lineTo(
-        0,
-        p.r
-    );
-
-    ctx.lineTo(
-        -p.r,
-        0
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    ctx.shadowBlur=0;
-
-
-    /*
-        İç parıltı
-    */
-
-    ctx.fillStyle="#ffffff";
-
-    ctx.globalAlpha=.7;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        -3,
-        -3,
-        2,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   DÜŞMAN
-========================================================= */
-
-function drawEnemy(e){
-
-    const x=screenX(e.x);
-    const y=screenY(e.y);
-
-
-    if(
-        x<-100 ||
-        x>W+100 ||
-        y<-100 ||
-        y>H+100
-    )
-        return;
-
-
-    ctx.save();
-
-    ctx.translate(
-        x,
-        y
-    );
-
-
-    const angle=
-        Math.atan2(
-            ship.y-e.y,
-            ship.x-e.x
-        );
-
-    ctx.rotate(angle);
-
-
-    ctx.fillStyle="#8f1832";
-
-    ctx.strokeStyle="#ff5870";
-
-    ctx.lineWidth=2;
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(-22,0);
-
-    ctx.lineTo(-7,-12);
-
-    ctx.lineTo(20,0);
-
-    ctx.lineTo(-7,12);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.stroke();
-
-
-    ctx.fillStyle="#ff5a70";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        4,
-        0,
-        5,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-
-    /*
-        Can barı
-    */
-
-    ctx.fillStyle="#26101a";
-
-    ctx.fillRect(
-        -20,
-        -27,
-        40,
-        4
-    );
-
-
-    ctx.fillStyle="#ff465e";
-
-    ctx.fillRect(
-        -20,
-        -27,
-        40*
-        (e.hp/e.maxHp),
-        4
-    );
-
-
-    ctx.restore();
-
-}
-
-
-/* =========================================================
-   UI
-========================================================= */
-
-function updateUI(){
-
-    document.getElementById(
-        "iron"
-    ).textContent=
-        Math.floor(state.iron);
-
-    document.getElementById(
-        "crystal"
-    ).textContent=
-        Math.floor(state.crystal);
-
-    document.getElementById(
-        "energy"
-    ).textContent=
-        Math.floor(state.energy);
-
-
-    document.getElementById(
-        "level"
-    ).textContent=
-        state.level;
-
-
-    document.getElementById(
-        "hpText"
-    ).textContent=
-        Math.ceil(ship.hp)
-        +" / "
-        +ship.maxHp;
-
-
-    document.getElementById(
-        "hpBar"
-    ).style.width=
-        (
-            ship.hp/
-            ship.maxHp*
-            100
-        )+"%";
-
-
-    document.getElementById(
-        "armorLv"
-    ).textContent=
-        state.armorLv;
-
-    document.getElementById(
-        "fireLv"
-    ).textContent=
-        state.fireLv;
-
-    document.getElementById(
-        "bulletLv"
-    ).textContent=
-        state.bulletLv;
-
-    document.getElementById(
-        "damageLv"
-    ).textContent=
-        state.damageLv;
-
-    document.getElementById(
-        "engineLv"
-    ).textContent=
-        state.engineLv;
-
-
-    setUpgrade(
-        "armorUp",
-        state.armorLv,
-        "armor"
-    );
-
-    setUpgrade(
-        "fireUp",
-        state.fireLv,
-        "fire"
-    );
-
-    setUpgrade(
-        "bulletUp",
-        state.bulletLv,
-        "bullet"
-    );
-
-    setUpgrade(
-        "damageUp",
-        state.damageLv,
-        "damage"
-    );
-
-    setUpgrade(
-        "engineUp",
-        state.engineLv,
-        "engine"
-    );
-
-}
-
-
-/* =========================================================
-   CRAFT MALİYETLERİ
-========================================================= */
-
-function cost(
-    type,
-    lv
-){
-
-    /*
-        Level 0 -> Level 1
-    */
-
-    if(type==="armor")
-
-        return {
-            iron:8+lv*5,
-            crystal:2+lv*2,
-            energy:0+lv
-        };
-
-
-    if(type==="fire")
-
-        return {
-            iron:10+lv*6,
-            crystal:2+lv*2,
-            energy:2+lv
-        };
-
-
-    if(type==="bullet")
-
-        return {
-            iron:7+lv*5,
-            crystal:3+lv*2,
-            energy:2+lv
-        };
-
-
-    if(type==="damage")
-
-        return {
-            iron:12+lv*7,
-            crystal:4+lv*2,
-            energy:2+lv*2
-        };
-
-
-    return {
-        iron:14+lv*8,
-        crystal:2+lv*2,
-        energy:3+lv*2
-    };
-
-}
-
-
-/* =========================================================
-   CRAFT UI
-========================================================= */
-
-function setUpgrade(
-    id,
-    lv,
-    type
-){
-
-    const c=
-        cost(
-            type,
-            lv
-        );
-
-
-    const btn=
-        document.getElementById(id);
-
-
-    btn.textContent=
-        `CRAFT  🔩${c.iron}  💎${c.crystal}  ⚡${c.energy}`;
-
-
-    btn.disabled=
-        state.iron<c.iron ||
-        state.crystal<c.crystal ||
-        state.energy<c.energy;
-
-}
-
-
-/* =========================================================
-   UPGRADE
-========================================================= */
-
-function upgrade(type){
-
-    const key=
-
-        type==="armor"
-        ? "armorLv"
-
-        :
-
-        type==="fire"
-        ? "fireLv"
-
-        :
-
-        type==="bullet"
-        ? "bulletLv"
-
-        :
-
-        type==="damage"
-        ? "damageLv"
-
-        :
-
-        "engineLv";
-
-
-    const c=
-        cost(
-            type,
-            state[key]
-        );
-
-
-    if(
-        state.iron<c.iron ||
-        state.crystal<c.crystal ||
-        state.energy<c.energy
-    )
-        return;
-
-
-    state.iron-=c.iron;
-
-    state.crystal-=c.crystal;
-
-    state.energy-=c.energy;
-
-
-    state[key]++;
-
-
-    /*
-        Zırh upgrade
-    */
-
-    if(type==="armor"){
-
-        const old=
-            ship.maxHp;
-
-        ship.maxHp+=20;
-
-        ship.hp+=
-            ship.maxHp-old;
-
-    }
-
-
-    state.level=
-        Math.max(
-            state.armorLv,
-            state.fireLv,
-            state.bulletLv,
-            state.damageLv,
-            state.engineLv
-        );
-
-
-    showMessage(
-        "🔧 UPGRADE TAMAMLANDI!"
-    );
-
-
-    addParticle(
-        ship.x,
-        ship.y,
-        "#7de7ff",
-        25
-    );
-
-
-    updateUI();
-
-}
-
-
-/* =========================================================
-   BUTTONLAR
-========================================================= */
-
-document.getElementById(
-    "armorUp"
-).onclick=
-    ()=>upgrade("armor");
-
-
-document.getElementById(
-    "fireUp"
-).onclick=
-    ()=>upgrade("fire");
-
-
-document.getElementById(
-    "bulletUp"
-).onclick=
-    ()=>upgrade("bullet");
-
-
-document.getElementById(
-    "damageUp"
-).onclick=
-    ()=>upgrade("damage");
-
-
-document.getElementById(
-    "engineUp"
-).onclick=
-    ()=>upgrade("engine");
-
-
-const craft=
-    document.getElementById(
-        "craft"
-    );
-
-
-document.getElementById(
-    "craftBtn"
-).onclick=()=>{
-
-    craft.style.display=
-        "block";
-
-};
-
-
-document.getElementById(
-    "close"
-).onclick=()=>{
-
-    craft.style.display=
-        "none";
-
-};
-
-
-/* =========================================================
-   MESAJ
-========================================================= */
-
-function showMessage(txt){
-
-    const el=
-        document.getElementById(
-            "message"
-        );
-
-
-    el.textContent=txt;
-
-    el.style.opacity=1;
-
-
-    clearTimeout(
-        showMessage.timer
-    );
-
-
-    showMessage.timer=
-        setTimeout(()=>{
-
-            el.style.opacity=0;
-
-        },1200);
-
-}
-
-
-/* =========================================================
-   JOYSTICK
-========================================================= */
-
-const joystick=
-    document.getElementById(
-        "joystick"
-    );
-
-const stick=
-    document.getElementById(
-        "stick"
-    );
-
-
-function joystickMove(
-    clientX,
-    clientY
-){
-
-    const r=
-        joystick.getBoundingClientRect();
-
-
-    const cx=
-        r.left+
-        r.width/2;
-
-    const cy=
-        r.top+
-        r.height/2;
-
-
-    let dx=
-        clientX-cx;
-
-    let dy=
-        clientY-cy;
-
-
-    const max=48;
-
-    const len=
-        Math.hypot(
-            dx,
-            dy
-        );
-
-
-    if(len>max){
-
-        dx=
-            dx/len*max;
-
-        dy=
-            dy/len*max;
-
-    }
-
-
-    stick.style.transform=
-        `translate(${dx}px,${dy}px)`;
-
-
-    joy.x=
-        dx/max;
-
-    joy.y=
-        dy/max;
-
-}
-
-
-function joystickReset(){
-
-    joy.x=0;
-    joy.y=0;
-
-    stick.style.transform=
-        "translate(0,0)";
-
-    joy.active=false;
-
-}
-
-
-joystick.addEventListener(
-    "pointerdown",
-    e=>{
-
-        joy.active=true;
-
-        joy.id=
-            e.pointerId;
-
-        joystick.setPointerCapture(
-            e.pointerId
-        );
-
-        joystickMove(
-            e.clientX,
-            e.clientY
-        );
-
-    }
-);
-
-
-joystick.addEventListener(
-    "pointermove",
-    e=>{
-
-        if(joy.active){
-
-            joystickMove(
-                e.clientX,
-                e.clientY
-            );
-
-        }
-
-    }
-);
-
-
-joystick.addEventListener(
-    "pointerup",
-    joystickReset
-);
-
-
-joystick.addEventListener(
-    "pointercancel",
-    joystickReset
-);
-
-
-/* =========================================================
-   ATEŞ BUTONU
-========================================================= */
-
-const fireBtn=
-    document.getElementById(
-        "fire"
-    );
-
-
-fireBtn.addEventListener(
-    "pointerdown",
-    e=>{
-
-        e.preventDefault();
-
-        firing=true;
-
-    }
-);
-
-
-fireBtn.addEventListener(
-    "pointerup",
-    ()=>{
-
-        firing=false;
-
-    }
-);
-
-
-fireBtn.addEventListener(
-    "pointercancel",
-    ()=>{
-
-        firing=false;
-
-    }
-);
-
-
-fireBtn.addEventListener(
-    "pointerleave",
-    ()=>{
-
-        firing=false;
-
-    }
-);
-
-
-/* =========================================================
-   KLAVYE
-========================================================= */
-
-const keys={};
-
-
-addEventListener(
-    "keydown",
-    e=>{
-
-        keys[
-            e.key.toLowerCase()
-        ]=true;
-
-
-        if(e.code==="Space"){
-
-            firing=true;
-
-            e.preventDefault();
-
-        }
-
-    }
-);
-
-
-addEventListener(
-    "keyup",
-    e=>{
-
-        keys[
-            e.key.toLowerCase()
-        ]=false;
-
-
-        if(e.code==="Space"){
-
-            firing=false;
-
-        }
-
-    }
-);
-
-
-function keyboard(){
-
-    if(joy.active)
-        return;
-
-
-    let x=0;
-    let y=0;
-
-
-    if(
-        keys["a"] ||
-        keys["arrowleft"]
-    )
-        x--;
-
-
-    if(
-        keys["d"] ||
-        keys["arrowright"]
-    )
-        x++;
-
-
-    if(
-        keys["w"] ||
-        keys["arrowup"]
-    )
-        y--;
-
-
-    if(
-        keys["s"] ||
-        keys["arrowdown"]
-    )
-        y++;
-
-
-    const len=
-        Math.hypot(
-            x,
-            y
-        );
-
-
-    if(len){
-
-        joy.x=
-            x/len;
-
-        joy.y=
-            y/len;
-
-    }
-    else{
-
-        joy.x=0;
-        joy.y=0;
-
-    }
-
-}
-
-
-/* =========================================================
-   OYUN DÖNGÜSÜ
-========================================================= */
-
-function loop(){
-
-    keyboard();
-
-    update();
-
-    draw();
-
-    requestAnimationFrame(
-        loop
-    );
-
-}
-
-
-/* =========================================================
-   BAŞLAT
-========================================================= */
-
-updateUI();
-
-loop();
-
+let last=performance.now();function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);render();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+
+function syncMobile(){input.mobile=!desktop();document.getElementById('mobile').style.display=input.mobile?'block':'none'}syncMobile();addEventListener('resize',syncMobile);
+addEventListener('mousemove',e=>{input.mx=e.clientX;input.my=e.clientY;document.getElementById('crosshair').style.left=e.clientX+'px';document.getElementById('crosshair').style.top=e.clientY+'px'});
+addEventListener('mousedown',e=>{audioUnlock();if(e.button===0)input.pcLeft=true;if(e.button===2)input.pcRight=true});addEventListener('mouseup',e=>{if(e.button===0)input.pcLeft=false;if(e.button===2)input.pcRight=false});addEventListener('contextmenu',e=>e.preventDefault());addEventListener('blur',()=>{input.pcLeft=false;input.pcRight=false;input.mobileFire=false;input.joyX=0;input.joyY=0;input.joyMag=0;input.joyPointer=null;input.firePointer=null;document.getElementById('joyStick').style.transform='translate(0,0)'});
+
+const joyArea=document.getElementById('joyArea'),joyStick=document.getElementById('joyStick'),fireBtn=document.getElementById('fireBtn');
+function joyMove(e){const r=joyArea.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=44;let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy);if(l>max){dx=dx/l*max;dy=dy/l*max}joyStick.style.transform=`translate(${dx}px,${dy}px)`;input.joyX=dx/max;input.joyY=dy/max;input.joyMag=clamp(Math.hypot(input.joyX,input.joyY),0,1);if(input.joyMag>.03){input.joyAngle=Math.atan2(input.joyY,input.joyX);player.angle=input.joyAngle}}
+function joyReset(){input.joyX=input.joyY=input.joyMag=0;input.joyPointer=null;joyStick.style.transform='translate(0,0)'}
+joyArea.addEventListener('pointerdown',e=>{if(!input.mobile||!state.running||state.dead)return;audioUnlock();input.joyPointer=e.pointerId;joyArea.setPointerCapture(e.pointerId);joyMove(e);e.preventDefault()});joyArea.addEventListener('pointermove',e=>{if(e.pointerId===input.joyPointer)joyMove(e)});joyArea.addEventListener('pointerup',e=>{if(e.pointerId===input.joyPointer)joyReset()});joyArea.addEventListener('pointercancel',e=>{if(e.pointerId===input.joyPointer)joyReset()});
+fireBtn.addEventListener('pointerdown',e=>{if(!input.mobile||!state.running||state.dead)return;audioUnlock();input.mobileFire=true;input.firePointer=e.pointerId;fireBtn.setPointerCapture(e.pointerId);e.preventDefault()});function fireReset(e){if(e.pointerId===input.firePointer){input.firePointer=null;input.mobileFire=false;e.preventDefault()}}fireBtn.addEventListener('pointerup',fireReset);fireBtn.addEventListener('pointercancel',fireReset);
+
+const craftModal=document.getElementById('craftModal'),saveModal=document.getElementById('saveModal');
+document.getElementById('craftBtn').onclick=()=>{if(state.dead)return;state.paused=true;craftModal.classList.add('show');renderUpgrades(currentTab)};document.getElementById('craftClose').onclick=()=>{state.paused=false;craftModal.classList.remove('show')};craftModal.addEventListener('pointerdown',e=>{if(e.target===craftModal){state.paused=false;craftModal.classList.remove('show')}});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>renderUpgrades(b.dataset.tab));
+document.getElementById('saveBtn').onclick=()=>{state.paused=true;saveModal.classList.add('show')};document.getElementById('saveClose').onclick=()=>{state.paused=false;saveModal.classList.remove('show')};saveModal.addEventListener('pointerdown',e=>{if(e.target===saveModal){state.paused=false;saveModal.classList.remove('show')}});
+document.getElementById('manualSave').onclick=()=>saveGame();document.getElementById('saveNow2').onclick=()=>saveGame();document.getElementById('manualLoad').onclick=()=>{if(loadGame())saveModal.classList.remove('show')};document.getElementById('exportSave').onclick=exportSave;document.getElementById('importSave').onclick=importSave;document.getElementById('resetSave').onclick=resetSave;
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='c'&&!state.dead&&!document.getElementById('craftModal').classList.contains('show')){state.paused=true;craftModal.classList.add('show');renderUpgrades(currentTab)}if(e.key==='Escape'){if(craftModal.classList.contains('show')){state.paused=false;craftModal.classList.remove('show')}if(saveModal.classList.contains('show')){state.paused=false;saveModal.classList.remove('show')}}if(e.key==='F5'){e.preventDefault();saveGame();}});
+
+document.getElementById('restart').onclick=()=>{document.getElementById('dead').classList.remove('show');newGame();};
+document.getElementById('newGame').onclick=()=>{audioUnlock();document.getElementById('boot').style.display='none';newGame()};
+document.getElementById('continueGame').onclick=()=>{audioUnlock();document.getElementById('boot').style.display='none';if(!loadGame())newGame()};
+
+(function boot(){const has=hasSave();document.getElementById('continueGame').disabled=!has;document.getElementById('continueGame').style.opacity=has?'1':'.35';document.getElementById('bootSaveText').textContent=has?'Kayıt bulundu · Son ilerleme yüklenebilir.':'Kayıt bulunamadı · Yeni sefer başlatabilirsin.';renderUpgrades('ship');updateHUD()})();
+window.addEventListener('beforeunload',()=>{if(state.running&&!state.dead)saveGame(true)});
+})();
 </script>
-
 </body>
 </html>
-:::
